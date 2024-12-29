@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Tuple, no_type_check, Union
 __all__ = ["VER", "VER_STRING", "Slot", "Game", "GameSave"]
 
 VER: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]] = \
-(0, 4, 1, "a", 2)
+(0, 4, 1, "a", 3)
 
 VER_STRING: str = \
 ("{0}.{1}.{2}-{3}{4}" if len(VER) > 4 else "{0}.{1}.{2}").format(*VER)

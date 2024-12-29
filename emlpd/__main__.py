@@ -43,26 +43,29 @@ print("当前金币数:", gamesave.coins, "/ 65535")
 if not skipthread :
     sleep(2)
 
+print("输入“stat”以查看统计信息。")
+for k, v in GAMEMODE_SET.items() :
+    if len(v) > 4 :
+        print("游戏模式", k, ":", v[3])
+        if v[4] is None :
+            print("没有介绍")
+        else :
+            print("介绍:", v[4])
+    else :
+        print("游戏模式", k)
+        print("没有名字")
+
 while 1 :
-    gamemode: str = input("""\
-输入0以查看统计信息。
-请选择游戏模式:
-1.普通模式
-2.无限模式(一)
-3.小刀狂欢
-4.骰子王国
-5.无限模式(二)
-6.连射派对""")
+    gamemode: str = input("选择游戏模式请输入对应的编号:")
     try :
         gamemode_i = int(gamemode)
     except ValueError :
-        pass
-    else :
-        if gamemode_i in (1, 2, 3, 4, 5, 6) :
-            break
-        if not gamemode_i :
+        if gamemode == "stat" :
             for k, v in gamesave.__dict__.items() :
                 print(k, v, sep=": ")
+    else :
+        if gamemode_i in GAMEMODE_SET :
+            break
 
 IDENTITIES: Dict[int, Tuple[str, str, int]] = {
     1: ("工人", "加2血/25%免伤/去掉小刀", 0),
@@ -199,10 +202,12 @@ while 1 :
     e_expired_slots: List[Optional[int]] = chosen_game.expire_e_slots()
     for tool_id in r_expired_slots :
         if tool_id is not None :
-            print("非常可惜,随着槽位的到期,你的", chosen_game.tools[tool_id][0], "也不翼而飞")
+            print("非常可惜,随着槽位的到期,你的",
+                  chosen_game.tools[tool_id][0], "也不翼而飞")
     for tool_id in e_expired_slots :
         if tool_id is not None :
-            print("非常高兴,随着槽位的到期,恶魔的", chosen_game.tools[tool_id][0], "不翼而飞")
+            print("非常高兴,随着槽位的到期,恶魔的",
+                  chosen_game.tools[tool_id][0], "不翼而飞")
     sleep(1)
     r_new_slot: Optional[int] = chosen_game.send_r_slot()
     e_new_slot: Optional[int] = chosen_game.send_e_slot(1., {5: 1}) if \
@@ -299,7 +304,7 @@ while 1 :
                     else :
                         print("道具", k, ":", chosen_game.tools[k][0])
                     print("作用:", chosen_game.tools[k][1])
-                for slot in chosen_game.e_slots :
+                for slot in chosen_game.r_slots :
                     if slot[1] is not None and slot[0] > 0 :
                         print("道具", slot[1], ":", chosen_game.tools[slot[1]][0])
                         print("作用:", chosen_game.tools[slot[1]][1])
@@ -337,10 +342,9 @@ while 1 :
                         elif to_use == 3 :
                             chosen_game.r_slots[tools_existence[3]] = \
                             (chosen_game.r_slots[tools_existence[3]][0], None)
-                            if chosen_game.bullets.pop(0) :
-                                print("你排出了一颗实弹")
-                            else :
-                                print("你排出了一颗空弹")
+                            print("你排出了一颗实弹" \
+                                  if chosen_game.bullets.pop(0) \
+                                  else "你排出了一颗空弹")
                         elif to_use == 4 :
                             chosen_game.r_slots[tools_existence[4]] = \
                             (chosen_game.r_slots[tools_existence[4]][0], None)
@@ -900,7 +904,8 @@ while 1 :
                                         gamesave.add_exp((base_attack+\
                                                           r_attack_boost)//2)
                                     true_on_r = True
-                                    print("感觉像是去奈何桥走了一遭,竟然是个实弹!")
+                                    print("感觉像是去奈何桥走了一遭,"
+                                          "竟然是个实弹!")
                                     for _ in range(base_attack+r_attack_boost):
                                         if random() < r_hurts / 8. :
                                             chosen_game.r_hp -= 2
@@ -1151,9 +1156,9 @@ while 1 :
                     will_use = nightmare or not randint(0, 1)
                     if will_use :
                         chosen_game.e_slots[slotid] = (slot[0], None)
-                        if nightmare or\
-                           chosen_game.r_hp <= 3 + r_hurts / 4. or \
-                           random() < 0.5 ** (chosen_game.r_hp-3-r_hurts/4.) :
+                        if nightmare or \
+                           chosen_game.e_hp <= 3 + e_hurts / 4. or \
+                           random() < 0.5 ** (chosen_game.e_hp-3-e_hurts/4.) :
                             chosen_game.e_hp += 1
                             print("恶魔使用了道德的崇高赞许,回复了1点生命")
                         else :
@@ -1463,7 +1468,8 @@ while 1 :
                     if will_use :
                         chosen_game.e_slots[slotid] = (slot[0], None)
                         while chosen_game.bullets :
-                            print("恶魔排出了一颗实弹" if chosen_game.bullets.pop(0) \
+                            print("恶魔排出了一颗实弹" \
+                                  if chosen_game.bullets.pop(0) \
                                   else "恶魔排出了一颗空弹")
                 elif slot[1] == 29 :
                     will_use = not randint(0, 7)
