@@ -1,0 +1,8 @@
+**/emlpd.dat
+**.txz
+**.txt
+.idea/
+.vscode/
+**/__pycache__/
+**.pyc
+**.pyo
