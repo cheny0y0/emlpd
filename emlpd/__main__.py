@@ -60,7 +60,7 @@ while 1 :
     try :
         gamemode_i = int(gamemode)
     except ValueError :
-        if gamemode == "stat" :
+        if gamemode.strip() == "stat" :
             for k, v in gamesave.__dict__.items() :
                 print(k, v, sep=": ")
     else :
@@ -216,10 +216,13 @@ while 1 :
         print("你获得1个有效期", r_new_slot, "回合的空槽位")
     if e_new_slot is not None :
         print("恶魔获得1个有效期", e_new_slot, "回合的空槽位")
-    print("你获得", chosen_game.send_tools_to_r(GAMEMODE_SET[gamemode_i][1]),
-          "个道具")
-    print("恶魔获得", chosen_game.send_tools_to_e(GAMEMODE_SET[gamemode_i][1]),
-          "个道具")
+    if chosen_game.has_tools() :
+        print("你获得",
+              chosen_game.send_tools_to_r(GAMEMODE_SET[gamemode_i][1]),
+              "个道具")
+        print("恶魔获得",
+              chosen_game.send_tools_to_e(GAMEMODE_SET[gamemode_i][1]),
+              "个道具")
     chosen_game.gen_bullets()
     sleep(1)
     print("子弹共有", len(chosen_game.bullets), "发")
@@ -805,8 +808,10 @@ while 1 :
             elif operation == 8 :
                 print("恶魔的道具库:")
                 permaslots: Dict[int, int] = {}
+                e_has_tool: bool = False
                 for slot in chosen_game.e_slots :
                     if slot[1] is not None and slot[0] <= 0 :
+                        e_has_tool = True
                         if slot[1] in permaslots :
                             permaslots[slot[1]] += 1
                         else :
@@ -820,10 +825,13 @@ while 1 :
                     print("作用:", chosen_game.tools[k][1])
                 for slot in chosen_game.e_slots :
                     if slot[1] is not None and slot[0] > 0 :
+                        e_has_tool = True
                         print("道具", slot[1], ":",
                               chosen_game.tools[slot[1]][0])
                         print("作用:", chosen_game.tools[slot[1]][1])
                         print("还有", slot[0], "回合到期")
+                if not e_has_tool :
+                    print("(空)")
             elif operation == 1 :
                 round_turn_count += 1
                 period_turn_count += 1

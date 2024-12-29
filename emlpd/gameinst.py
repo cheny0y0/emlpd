@@ -2,7 +2,7 @@ from random import randint
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 from .gameapi import Game, Slot
 
-__all__ = ["GENERIC_TOOLS", "GAMEMODE_SET"]
+__all__ = ["GENERIC_TOOLS", "GAMEMODE_SET", "gen_tools_from_generic_tools"]
 
 GENERIC_TOOLS: Tuple[Tuple[str, str], ...] = (
     ("良枪(一)", "保证向自己开枪不会炸膛(无提示)"), # ID0
@@ -506,6 +506,50 @@ combo_party: Game = Game(
     True
 )
 
+exploded_test: Game = Game(
+    2,
+    8,
+    1,
+    1,
+    8,
+    10,
+    50,
+    gen_tools_from_generic_tools((5, 9, 21)),
+    {
+        5: 1,
+        9: 16,
+        21: 2
+    },
+    {
+        5: 0,
+        9: 0,
+        21: 0
+    },
+    {
+        5: 1,
+        9: 0,
+        21: 2
+    },
+    6,
+    False
+)
+
+onlybyhand: Game = Game(
+    2,
+    8,
+    1,
+    1,
+    8,
+    20,
+    50,
+    {},
+    {},
+    {},
+    {},
+    1,
+    not randint(0, 1)
+)
+
 GAMEMODE_SET: Dict[int, Union[
     Tuple[Iterable[Game], int, float],
     Tuple[Iterable[Game], int, float, str, Optional[str]]
@@ -513,8 +557,10 @@ GAMEMODE_SET: Dict[int, Union[
     1: ((normal_mode,), 2, 2.5, "普通模式", "新手入门首选"),
     2: ((infinite_mode,), 2, 2.5, "无限模式(一)", "陪你到天荒地老"),
     3: ((xiaodao_party,), 3, 3., "小刀狂欢", "哪发是实弹?"),
-    4: ((dice_kingdom,), 4, 2.25, "骰子王国", "最考研运气的一集"),
+    4: ((dice_kingdom,), 4, 2.25, "骰子王国", "最考验运气的一集"),
     5: (InfiniteMode2(), 2, 2.5, "无限模式(二)",
         "霓为衣兮风为马,云之君兮纷纷而来下"),
-    6: ((combo_party,), 3, 2.5, "连射派对", "火力全开")
+    6: ((combo_party,), 3, 2.5, "连射派对", "火力全开"),
+    7: ((exploded_test,), 2, 1.75, "炸膛测试", "枪在哪边好使?"),
+    8: ((onlybyhand,), 1, 2.5, "赤手空“枪”", "没有道具了")
 }

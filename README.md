@@ -113,7 +113,7 @@ _详见 道具 18：**连发射手**_
 _r_(_r_∈N₊)，若朝对方开枪，则至少会射出 min(_r_,1+_m_) 发子弹，并有
 1-pow(2,-_n_) 的概率多射出 1 发子弹（若弹夹内还有子弹）。换而言之，当 _n_>0
 时，你有 min(1,pow(1-pow(2,-_n_),_r_-1-_m_)) 的概率清空弹夹。设主弹夹射出了
-_s_(s∈N₊) 发子弹，若 _s_>_n_，则叠加连发射手数变为 0；若 _s_≤_n_，
+_s_(_s_∈N₊) 发子弹，若 _s_>_n_，则叠加连发射手数变为 0；若 _s_≤_n_，
 则叠加连发射手数减 _s_。每多射出 1 发子弹（由叠加双发射手），叠加双发射手数减
 1。
 ##### 道具 19：硬币
@@ -181,12 +181,107 @@ _未实装_
 只会发放 ID11 道具。
 #### 5. 无限模式(二)
 有无穷多个周目。  
-你的初始生命值为 2。设当前为第 _n_(n∈N₊)周目，恶魔的初始生命值为 (_n_+9)。  
+你的初始生命值为 2。设当前为第 _n_(_n_∈N₊)周目，恶魔的初始生命值为 (_n_+9)。  
 会发放除 ID10 的所有道具。
 #### 6. 连射派对
 只有 1 个周目。  
 你和恶魔的初始生命值分别为 40 和 200。  
 只会发放 ID0、ID1、ID2、ID9、ID15、ID17、ID18、ID21、ID27、ID28、ID29 道具。
+#### 7. 炸膛测试
+只有 1 个周目。  
+你和恶魔的初始生命值分别为 10 和 50。  
+只会发放 ID5、ID9、ID21 道具。
+#### 8. 赤手空“枪”
+只有 1 个周目。  
+你和恶魔的初始生命值分别为 20 和 50。  
+不会发放任何道具。
+### 自定义游戏模式
+预设的游戏模式在 [emlpd.gameinst](emlpd/gameinst.py) 中，由 `GAMEMODE_SET`
+定义。这是 `GAMEMODE_SET` 的默认设置：
+
+```python3
+from typing import Dict, Iterable, Optional, Tuple, Union
+from emlpd.gameapi import Game
+
+normal_mode: Game = ...
+infinite_mode: Game = ...
+xiaodao_party: Game = ...
+dice_kingdom: Game = ...
+class InfiniteMode2: ...
+combo_party: Game = ...
+exploded_test: Game = ...
+onlybyhand: Game = ...
+
+GAMEMODE_SET: Dict[int, Union[
+    Tuple[Iterable[Game], int, float],
+    Tuple[Iterable[Game], int, float, str, Optional[str]]
+]] = {
+    1: ((normal_mode,), 2, 2.5, "普通模式", "新手入门首选"),
+    2: ((infinite_mode,), 2, 2.5, "无限模式(一)", "陪你到天荒地老"),
+    3: ((xiaodao_party,), 3, 3., "小刀狂欢", "哪发是实弹?"),
+    4: ((dice_kingdom,), 4, 2.25, "骰子王国", "最考验运气的一集"),
+    5: (InfiniteMode2(), 2, 2.5, "无限模式(二)",
+        "霓为衣兮风为马,云之君兮纷纷而来下"),
+    6: ((combo_party,), 3, 2.5, "连射派对", "火力全开"),
+    7: ((exploded_test,), 2, 1.75, "炸膛测试", "枪在哪边好使?"),
+    8: ((onlybyhand,), 1, 2.5, "赤手空“枪”", "没有道具了")
+}
+```
+你需要新建一个 Python 脚本，在其中创建一个 `Game` 对象（在
+[emlpd.gameapi](emlpd/gameapi.py) 中），然后将其添加到 `GAMEMODE_SET`
+中，例如：
+```python3
+from emlpd.gameapi import Game
+from emlpd.gameinst import GAMEMODE_SET, gen_tools_from_generic_tools
+
+my_gamemode: Game = Game( # 参数详情见 Game.__doc__
+    2,
+    10,
+    8,
+    0,
+    10,
+    100,
+    90,
+    gen_tools_from_generic_tools(
+        (0, 1, 21) # 包含预定道具 ID，可为空；见 emlpd.gameinst.GENERIC_TOOLS
+    ),
+    {
+        0: 1,
+        1: 1,
+        21: 2
+    },
+    {
+        0: 0,
+        1: 0,
+        21: 0
+    },
+    {
+        0: 2,
+        1: 2,
+        2: 4
+    },
+    7,
+    False
+)
+
+GAMEMODE_SET[
+    9 # 游戏模式 ID
+] = (
+    (my_gamemode,), # 一个包含 Game 的可迭代对象
+    1, # 指定每回合各方最多发放的道具数
+    2.75, # 指定经验乘数
+    "游戏模式名字",
+    "游戏模式介绍"
+)
+
+import emlpd.__main__ # type: ignore # import 不能省去！
+```
+随后运行上述脚本，即可看到：
+```text
+游戏模式 9 : 游戏模式名字
+介绍: 游戏模式介绍
+```
+输入 `9` 即可进入自定义游戏模式。
 ## 经典玩法
 ### 运行
 需要 Python 3.6 或更高版本的 Python。  

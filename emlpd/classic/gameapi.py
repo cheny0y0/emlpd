@@ -35,19 +35,19 @@ class Game :
                  tools_sending_limit_in_hand: Dict[int, int],
                  max_tools_storing: int = 8, firsthand: bool = True) -> None :
         """
-        min_bullets: 一回合最少发放的子弹数。
-        max_bullets: 一回合最多发放的子弹数。
-        min_true_bullets: 一回合最少发放的实弹数。
-        min_false_bullets: 一回合最少发放的空弹数。
-        max_true_bullets: 一回合最多发放的实弹数。
-        r_hp: 你的生命值。
-        e_hp: 恶魔的生命值。
-        tools: 道具(键为道具ID,值为道具名称和描述)。
-        tools_sending_weight: 道具发放相对权重(键为道具ID,值为相对权重值)。
-        tools_sending_limit_in_game: 一局游戏道具发放的最多次数(键为道具ID,值为最多次数值)。
-        tools_sending_limit_in_hand: 道具库中道具存在的最大数(键为道具ID,值为最大数值)。
-        max_tools_storing: 最大道具数。
-        firsthand: 指定谁是先手。True为“你”是先手,False为恶魔是先手。
+        :param min_bullets: 一回合最少发放的子弹数。
+        :param max_bullets: 一回合最多发放的子弹数。
+        :param min_true_bullets: 一回合最少发放的实弹数。
+        :param min_false_bullets: 一回合最少发放的空弹数。
+        :param max_true_bullets: 一回合最多发放的实弹数。
+        :param r_hp: 你的生命值。
+        :param e_hp: 恶魔的生命值。
+        :param tools: 道具(键为道具ID,值为道具名称和描述)。
+        :param tools_sending_weight: 道具发放相对权重(键为道具ID,值为相对权重值)。
+        :param tools_sending_limit_in_game: 一局游戏道具发放的最多次数(键为道具ID,值为最多次数值)。
+        :param tools_sending_limit_in_hand: 道具库中道具存在的最大数(键为道具ID,值为最大数值)。
+        :param max_tools_storing: 最大道具数。
+        :param firsthand: 指定谁是先手。True为“你”是先手,False为恶魔是先手。
         """
 
         self.min_bullets = min_bullets
@@ -88,6 +88,8 @@ class Game :
     def random_tool_to_r(self) -> int :
         """
         基于“你”当前的情况返回一个随机道具。
+
+        :return: 随机道具的ID。
         """
 
         randomlist: List[int] = []
@@ -109,6 +111,8 @@ class Game :
     def random_tool_to_e(self) -> int :
         """
         基于恶魔当前的情况返回一个随机道具。
+
+        :return: 随机道具的ID。
         """
 
         randomlist: List[int] = []
@@ -130,6 +134,8 @@ class Game :
     def send_tools_to_r(self, max_amount: int = 2) -> int :
         """
         向“你”发放随机道具。
+
+        :return: 实际发放道具的数量。
         """
 
         max_amount = min(max_amount, self.max_tools_storing-len(self.r_tools))
@@ -143,6 +149,8 @@ class Game :
     def send_tools_to_e(self, max_amount: int = 2) -> int :
         """
         向恶魔发放随机道具。
+
+        :return: 实际发放道具的数量。
         """
 
         max_amount = min(max_amount, self.max_tools_storing-len(self.e_tools))
@@ -158,9 +166,9 @@ class Game :
         """
         执行开枪操作。
 
-        to_self: 是否对着自己开枪。
-        shooter: 开枪者。True为“你”,False为恶魔,None(未指定)则为当前方。
-        return: 表示子弹类型(实弹或空弹)。若为None则表示弹夹内无子弹。
+        :param to_self: 是否对着自己开枪。
+        :param shooter: 开枪者。True为“你”,False为恶魔,None(未指定)则为当前方。
+        :return: 表示子弹类型(实弹或空弹)。若为None则表示弹夹内无子弹。
         """
 
         if shooter is None :

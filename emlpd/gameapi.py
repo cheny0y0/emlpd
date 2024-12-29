@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Tuple, no_type_check, Union
 __all__ = ["VER", "VER_STRING", "Slot", "Game", "GameSave"]
 
 VER: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]] = \
-(0, 4, 1, "a", 3)
+(0, 4, 1, "a", 4)
 
 VER_STRING: str = \
 ("{0}.{1}.{2}-{3}{4}" if len(VER) > 4 else "{0}.{1}.{2}").format(*VER)
@@ -53,19 +53,19 @@ class Game :
                  tools_sending_limit_in_slot: Dict[int, int],
                  permanent_slots: int, firsthand: bool) -> None :
         """
-        min_bullets: 一回合最少发放的子弹数。
-        max_bullets: 一回合最多发放的子弹数。
-        min_true_bullets: 一回合最少发放的实弹数。
-        min_false_bullets: 一回合最少发放的空弹数。
-        max_true_bullets: 一回合最多发放的实弹数。
-        r_hp: 你的生命值。
-        e_hp: 恶魔的生命值。
-        tools: 道具(键为道具ID,值为道具名称和描述)。
-        tools_sending_weight: 道具发放相对权重(键为道具ID,值为相对权重值)。
-        tools_sending_limit_in_game: 一局游戏道具发放的最多次数(键为道具ID,值为最多次数值)。
-        tools_sending_limit_in_slot: 槽位中道具存在的最大数(键为道具ID,值为最大数值)。
-        permanent_slots: 永久槽位数。
-        firsthand: 指定谁是先手。True为“你”是先手,False为恶魔是先手。
+        :param min_bullets: 一回合最少发放的子弹数。
+        :param max_bullets: 一回合最多发放的子弹数。
+        :param min_true_bullets: 一回合最少发放的实弹数。
+        :param min_false_bullets: 一回合最少发放的空弹数。
+        :param max_true_bullets: 一回合最多发放的实弹数。
+        :param r_hp: 你的生命值。
+        :param e_hp: 恶魔的生命值。
+        :param tools: 道具(键为道具ID,值为道具名称和描述)。
+        :param tools_sending_weight: 道具发放相对权重(键为道具ID,值为相对权重值)。
+        :param tools_sending_limit_in_game: 一局游戏道具发放的最多次数(键为道具ID,值为最多次数值)。
+        :param tools_sending_limit_in_slot: 槽位中道具存在的最大数(键为道具ID,值为最大数值)。
+        :param permanent_slots: 永久槽位数。
+        :param firsthand: 指定谁是先手。True为“你”是先手,False为恶魔是先手。
         """
 
         self.min_bullets = min_bullets
@@ -92,6 +92,8 @@ class Game :
         Optional[List[bool]] :
         """
         生成一个新的弹夹。
+
+        :return: 若bullets_id不为None,则为弹夹引用,否则为None。
         """
 
         if bullets_id is None :
@@ -128,15 +130,28 @@ class Game :
                 if bullets_ref[a] :
                     bullets_ref[a] = False
                     break
-        if bullets_id in (0, 1, 2, 3) :
+        if bullets_id not in (0, 1, 2, 3) :
             return None
         return bullets_ref
+
+    def has_tools(self) -> bool :
+        """
+        指示该游戏是否有任何道具。
+
+        :return: 一个bool值,若有道具则为True。
+        """
+
+        for i in self.tools_sending_weight.values() :
+            if i > 0 :
+                return True
+        return False
 
     def count_tools_of_r(self, toolid: Optional[int]) -> int :
         """
         统计“你”有多少指定的道具或空道具槽位。
 
-        toolid: 要统计的道具ID。为None时统计空道具槽位。
+        :param toolid: 要统计的道具ID。为None时统计空道具槽位。
+        :return: “你”的指定道具或空槽位的数量。
         """
 
         res: int = 0
@@ -149,7 +164,8 @@ class Game :
         """
         统计恶魔有多少指定的道具或空道具槽位。
 
-        toolid: 要统计的道具ID。为None时统计空道具槽位。
+        :param toolid: 要统计的道具ID。为None时统计空道具槽位。
+        :return: 恶魔的指定道具或空槽位的数量。
         """
 
         res: int = 0
@@ -161,6 +177,8 @@ class Game :
     def random_tool_to_r(self) -> int :
         """
         基于“你”当前的情况返回一个随机道具。
+
+        :return: 随机道具的ID。
         """
 
         randomlist: List[int] = []
@@ -182,6 +200,8 @@ class Game :
     def random_tool_to_e(self) -> int :
         """
         基于恶魔当前的情况返回一个随机道具。
+
+        :return: 随机道具的ID。
         """
 
         randomlist: List[int] = []
@@ -203,6 +223,8 @@ class Game :
     def send_tools_to_r(self, max_amount: int = 2) -> int :
         """
         向“你”发放随机道具。
+
+        :return: 实际发放道具的数量。
         """
 
         counting_empty_slots_index: List[int] = []
@@ -237,6 +259,8 @@ class Game :
     def send_tools_to_e(self, max_amount: int = 2) -> int :
         """
         向恶魔发放随机道具。
+
+        :return: 实际发放道具的数量。
         """
 
         counting_empty_slots_index: List[int] = []
@@ -283,12 +307,12 @@ class Game :
         """
         执行开枪操作。
 
-        to_self: 是否对着自己开枪。
-        shooter: 开枪者。True为“你”,False为恶魔,None(未指定)则为当前方。
-        explosion_probability: 炸膛概率。未指定则为0.05。
-        bullets_id: 枪筒ID。未指定则为所有枪筒。
-        run_turn: 是否转换轮。
-        return: 表示子弹类型(实弹或空弹)及是否炸膛。若为None则表示弹夹内无子弹。
+        :param to_self: 是否对着自己开枪。
+        :param shooter: 开枪者。True为“你”,False为恶魔,None(未指定)则为当前方。
+        :param explosion_probability: 炸膛概率。未指定则为0.05。
+        :param bullets_id: 枪筒ID。未指定则为所有枪筒。
+        :param run_turn: 是否转换轮。
+        :return: 表示子弹类型(实弹或空弹)及是否炸膛。若为None则表示弹夹内无子弹。
         """
 
         if bullets_id is None :
@@ -331,13 +355,13 @@ class Game :
         """
         执行开枪操作。
 
-        to_self: 是否对着自己开枪。
-        shooter: 开枪者。True为“你”,False为恶魔,None(未指定)则为当前方。
-        explosion_probability: 炸膛概率。未指定则为0.05。
-        combo: 一次要发出多少子弹。未指定则为1。
-        bullets_id: 枪筒ID。未指定则为所有枪筒。
-        run_turn: 是否转换轮。
-        return: 一个列表,每项表示子弹类型(实弹或空弹)及是否炸膛。若为None则表示此时弹夹内无子弹。
+        :param to_self: 是否对着自己开枪。
+        :param shooter: 开枪者。True为“你”,False为恶魔,None(未指定)则为当前方。
+        :param explosion_probability: 炸膛概率。未指定则为0.05。
+        :param combo: 一次要发出多少子弹。未指定则为1。
+        :param bullets_id: 枪筒ID。未指定则为所有枪筒。
+        :param run_turn: 是否转换轮。
+        :return: 一个列表,每项表示子弹类型(实弹或空弹)及是否炸膛。若为None则表示此时弹夹内无子弹。
         """
 
         RES: List[ShootResult] = []
@@ -355,9 +379,9 @@ class Game :
         """
         向“你”送出一个槽位。
 
-        sent_probability: 送出的概率。
-        sent_weight: 送出槽位时长权重。键为时长,值为权重值。
-        return: 送出槽位的时长。若未送出则返回None。
+        :param sent_probability: 送出的概率。
+        :param sent_weight: 送出槽位时长权重。键为时长,值为权重值。
+        :return: 送出槽位的时长。若未送出则返回None。
         """
 
         if random() >= sent_probability :
@@ -376,9 +400,9 @@ class Game :
         """
         向恶魔送出一个槽位。
 
-        sent_probability: 送出的概率。
-        sent_weight: 送出槽位时长权重。键为时长,值为权重值。
-        return: 送出槽位的时长。若未送出则返回None。
+        :param sent_probability: 送出的概率。
+        :param sent_weight: 送出槽位时长权重。键为时长,值为权重值。
+        :return: 送出槽位的时长。若未送出则返回None。
         """
 
         if random() >= sent_probability :
@@ -395,7 +419,7 @@ class Game :
         """
         使“你”的临时槽位过期。
 
-        return: 列表,包含过期的槽位的道具ID。
+        :return: 列表,包含过期的槽位的道具ID。
         """
 
         RES: List[Optional[int]] = []
@@ -416,7 +440,7 @@ class Game :
         """
         使恶魔的临时槽位过期。
 
-        return: 列表,包含过期的槽位的道具ID。
+        :return: 列表,包含过期的槽位的道具ID。
         """
 
         RES: List[Optional[int]] = []
@@ -497,9 +521,9 @@ class GameSave :
                  play_rounds: int = 0, play_periods: int = 0,
                  game_runs: int = 0, active_gametime: float = 0.) -> None :
         """
-        level: 等级。
-        exp: 经验。
-        coins: 金币数。
+        :param level: 等级。
+        :param exp: 经验。
+        :param coins: 金币数。
         """
 
         if level < 0 :
@@ -571,7 +595,8 @@ class GameSave :
         """
         从字节源反序列化创建一个GameSave。
 
-        src: 字节源。
+        :param src: 字节源。
+        :return: 创建的GameSave。
         """
 
         offset: int = 0
