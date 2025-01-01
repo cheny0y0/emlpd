@@ -1,8 +1,11 @@
+from fractions import Fraction
 from random import randint
-from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
-from .gameapi import Game, Slot
+from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple, \
+                   Union
+from .gameapi import Game, Slot, ShootResult
 
-__all__ = ["GENERIC_TOOLS", "GAMEMODE_SET", "gen_tools_from_generic_tools"]
+__all__ = ["GENERIC_TOOLS", "GAMEMODE_SET", "gen_tools_from_generic_tools",
+           "NormalGame"]
 
 GENERIC_TOOLS: Tuple[Tuple[str, str], ...] = (
     ("良枪(一)", "保证向自己开枪不会炸膛(无提示)"), # ID0
@@ -48,7 +51,51 @@ def gen_tools_from_generic_tools(toolids: Iterable[int]) -> \
         RES[i] = GENERIC_TOOLS[i]
     return RES
 
-normal_mode: Game = Game(
+class NormalGame(Game) :
+    explosion_exponent: int
+
+    def __init__(
+        self, min_bullets: int, max_bullets: int, min_true_bullets: int,
+        min_false_bullets: int, max_true_bullets: int, r_hp: int, e_hp: int,
+        tools: Dict[int, Tuple[str, str]],
+        tools_sending_weight: Dict[int, Union[int, Callable[["Game"], int]]],
+        tools_sending_limit_in_game: Dict[int, int],
+        tools_sending_limit_in_slot: Dict[int,
+                                          Union[int, Callable[["Game"], int]]],
+        permanent_slots: int, firsthand: bool
+    ) :
+        super().__init__(
+            min_bullets, max_bullets, min_true_bullets, min_false_bullets,
+            max_true_bullets, r_hp, e_hp, tools, tools_sending_weight,
+            tools_sending_limit_in_game, tools_sending_limit_in_slot,
+            permanent_slots, firsthand
+        )
+        self.explosion_exponent = 0
+
+    def shoot(self, to_self: bool, shooter: Optional[bool] = None,
+              explosion_probability: Union[float, Callable[["Game"], float]] =\
+              lambda game: float(
+                  1-Fraction(1535, 1536)**(60+game.explosion_exponent)
+              ), bullets_id: Optional[int] = None, run_turn: bool = True) -> \
+        ShootResult :
+        res: ShootResult = super().shoot(
+            to_self, shooter, explosion_probability, bullets_id, run_turn
+        )
+        if bullets_id is not None and res != (None, None, None, None) :
+            self.explosion_exponent += 1
+        return res
+
+    def shoots(self, to_self: bool, shooter: Optional[bool] = None,
+               explosion_probability: Union[float, Callable[["Game"],float]] =\
+               lambda game: float(
+                   1-Fraction(1535, 1536)**(60+game.explosion_exponent)
+               ), combo: int = 1, bullets_id: Optional[int] = None,
+               run_turn: bool = True) -> List[ShootResult] :
+        return super().shoots(
+            to_self, shooter, explosion_probability, combo, bullets_id,run_turn
+        )
+
+normal_mode: NormalGame = NormalGame(
     2,
     8,
     1,
@@ -164,7 +211,7 @@ normal_mode: Game = Game(
     True
 )
 
-infinite_mode: Game = Game(
+infinite_mode: NormalGame = NormalGame(
     2,
     8,
     1,
@@ -265,13 +312,18 @@ infinite_mode: Game = Game(
         25: 0,
         26: 0,
         27: 0,
-        28: 0
+        28: 0,
+        29: 0,
+        30: 4,
+        31: 16,
+        32: 3,
+        33: 3
     },
     8,
     True
 )
 
-xiaodao_party: Game = Game(
+xiaodao_party: NormalGame = NormalGame(
     2,
     8,
     1,
@@ -296,7 +348,7 @@ xiaodao_party: Game = Game(
     True
 )
 
-dice_kingdom: Game = Game(
+dice_kingdom: NormalGame = NormalGame(
     2,
     8,
     1,
@@ -334,7 +386,9 @@ class InfiniteMode2 :
             raise StopIteration
         r_slots: Optional[List[Slot]] = \
         None if self.last_game is None else self.last_game.r_slots
-        self.last_game = Game(
+        explosion_exponent: Optional[int] = \
+        None if self.last_game is None else self.last_game.explosion_exponent
+        self.last_game = NormalGame(
             2,
             8,
             1,
@@ -451,10 +505,12 @@ class InfiniteMode2 :
         )
         if r_slots is not None :
             self.last_game.r_slots = r_slots
+        if explosion_exponent is not None :
+            self.last_game.explosion_exponent = explosion_exponent
         self.period_count += 1
         return self.last_game
 
-combo_party: Game = Game(
+combo_party: NormalGame = NormalGame(
     4,
     20,
     2,
@@ -506,7 +562,7 @@ combo_party: Game = Game(
     True
 )
 
-exploded_test: Game = Game(
+exploded_test: NormalGame = NormalGame(
     2,
     8,
     1,
@@ -534,13 +590,13 @@ exploded_test: Game = Game(
     False
 )
 
-onlybyhand: Game = Game(
+onlybyhand: NormalGame = NormalGame(
     2,
     8,
     1,
     1,
     8,
-    20,
+    18,
     50,
     {},
     {},

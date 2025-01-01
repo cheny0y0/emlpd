@@ -1,5 +1,5 @@
 from random import choice, randint
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from ..gameapi import VER, VER_STRING, GameSave
 
@@ -7,9 +7,9 @@ __all__ = ["VER", "VER_STRING", "Game", "GameSave"]
 
 class Game :
     tools: Dict[int, Tuple[str, str]]
-    tools_sending_weight: Dict[int, int]
+    tools_sending_weight: Dict[int, Union[int, Callable[["Game"], int]]]
     tools_sending_limit_in_game: Dict[int, int]
-    tools_sending_limit_in_hand: Dict[int, int]
+    tools_sending_limit_in_hand: Dict[int, Union[int, Callable[["Game"], int]]]
     r_hp: int
     e_hp: int
     r_tools: List[int]
@@ -94,17 +94,20 @@ class Game :
 
         randomlist: List[int] = []
         for k, v in self.tools_sending_weight.items() :
-            for _ in range(v) :
+            for _ in range(v if isinstance(v, int) else v(self)) :
                 randomlist.append(k)
         while 1 :
             randomid: int = choice(randomlist)
+            tool_sending_limit_in_hand: int = \
+            self.tools_sending_limit_in_hand[randomid] \
+            if isinstance(self.tools_sending_limit_in_hand[randomid], int) \
+            else self.tools_sending_limit_in_hand[randomid](self)
             if (randomid not in self.r_sending_total or \
                 self.tools_sending_limit_in_game[randomid] <= 0 or \
                 self.r_sending_total[randomid] < \
                 self.tools_sending_limit_in_game[randomid]) and \
-               (self.tools_sending_limit_in_hand[randomid] <= 0 or \
-                self.r_tools.count(randomid) < \
-                self.tools_sending_limit_in_hand[randomid]) :
+               (tool_sending_limit_in_hand <= 0 or \
+                self.r_tools.count(randomid) < tool_sending_limit_in_hand) :
                 return randomid
         raise AssertionError
 
@@ -117,17 +120,20 @@ class Game :
 
         randomlist: List[int] = []
         for k, v in self.tools_sending_weight.items() :
-            for _ in range(v) :
+            for _ in range(v if isinstance(v, int) else v(self)) :
                 randomlist.append(k)
         while 1 :
             randomid: int = choice(randomlist)
+            tool_sending_limit_in_hand: int = \
+            self.tools_sending_limit_in_hand[randomid] \
+            if isinstance(self.tools_sending_limit_in_hand[randomid], int) \
+            else self.tools_sending_limit_in_hand[randomid](self)
             if (randomid not in self.e_sending_total or \
                 self.tools_sending_limit_in_game[randomid] <= 0 or \
                 self.e_sending_total[randomid] < \
                 self.tools_sending_limit_in_game[randomid]) and \
-               (self.tools_sending_limit_in_hand[randomid] <= 0 or \
-                self.e_tools.count(randomid) < \
-                self.tools_sending_limit_in_hand[randomid]) :
+               (tool_sending_limit_in_hand <= 0 or \
+                self.e_tools.count(randomid) < tool_sending_limit_in_hand) :
                 return randomid
         raise AssertionError
 

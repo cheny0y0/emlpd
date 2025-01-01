@@ -1,3 +1,4 @@
+from fractions import Fraction
 from math import ceil
 from random import choice, randint, random, shuffle
 from sys import argv
@@ -5,7 +6,7 @@ from time import sleep, time
 from typing import Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING
 
 from .gameapi import Game, GameSave, ShootResult, VER_STRING
-from .gameinst import GAMEMODE_SET
+from .gameinst import GAMEMODE_SET, NormalGame
 
 gamesave: GameSave = GameSave()
 gamemode_i: int = 1
@@ -278,17 +279,31 @@ while 1 :
                 print("恶魔的破防回合数:", e_breakcare_rounds)
                 print("你的破防潜能:", r_breakcare_potential)
                 print("恶魔的破防潜能:", e_breakcare_potential)
+                if isinstance(chosen_game, NormalGame) :
+                    print("当前炸膛指数:", chosen_game.explosion_exponent)
             print("当前为你的回合")
             operation: int = 2
             if r_breakcare_rounds > 0 :
                 operation = randint(0, 1)
             else :
-                print("请选择:1朝对方开枪,0朝自己开枪,7打开道具库,8查看对方道具")
+                print(
+                    "请选择:1朝对方开枪,0朝自己开枪,7打开道具库,8查看对方道具"\
+                    if chosen_game.has_tools() or \
+                       chosen_game.count_tools_of_r(None) < \
+                       len(chosen_game.r_slots) or \
+                       chosen_game.count_tools_of_e(None) < \
+                       len(chosen_game.e_slots) else \
+                    "请选择:1朝对方开枪,0朝自己开枪"
+                )
                 try :
                     operation = int(input())
                 except ValueError :
                     pass
-            if operation == 7 :
+            if operation == 7 and (
+                chosen_game.has_tools() or
+                chosen_game.count_tools_of_r(None) < len(chosen_game.r_slots)or
+                chosen_game.count_tools_of_e(None) < len(chosen_game.e_slots)
+            ) :
                 print("道具库:")
                 tools_existence: Dict[int, int] = {}
                 permaslots: Dict[int, int] = {}
@@ -789,6 +804,19 @@ while 1 :
                             chosen_game.rel_turn_lap += \
                             len(chosen_game.bullets)
                             print("恭喜你,成功敲晕了对方!")
+                        elif to_use == 33 :
+                            if isinstance(chosen_game, NormalGame) and \
+                               chosen_game.explosion_exponent > 0 :
+                                chosen_game.r_slots[tools_existence[31]] = \
+                                (chosen_game.r_slots[tools_existence[31]][0],
+                                 None)
+                                chosen_game.explosion_exponent = int(
+                                    Fraction(2, 3)*\
+                                    chosen_game.explosion_exponent
+                                )
+                                print("你维修了一下枪筒")
+                            else :
+                                used = False
                         if used :
                             print("-1 道具", to_use)
                         if not chosen_game.bullets :
@@ -805,7 +833,11 @@ while 1 :
                                 tools_existence[slot[1]] = slotid
                     else :
                         print("道具", to_use, "不存在或未拥有")
-            elif operation == 8 :
+            elif operation == 8  and (
+                chosen_game.has_tools() or
+                chosen_game.count_tools_of_r(None) < len(chosen_game.r_slots)or
+                chosen_game.count_tools_of_e(None) < len(chosen_game.e_slots)
+            ) :
                 print("恶魔的道具库:")
                 permaslots: Dict[int, int] = {}
                 e_has_tool: bool = False
@@ -1254,6 +1286,8 @@ while 1 :
                         elif dice_sum == 4 :
                             chosen_game.e_hp -= 2
                             print("恶魔失去了2点生命")
+                            if chosen_game.e_hp <= 0 :
+                                break
                         elif dice_sum == 5 :
                             for bullet_index \
                             in range(2, len(chosen_game.bullets)) :
@@ -1262,6 +1296,8 @@ while 1 :
                         elif dice_sum == 6 :
                             chosen_game.e_hp -= 1
                             print("恶魔失去了1点生命")
+                            if chosen_game.e_hp <= 0 :
+                                break
                         elif dice_sum == 7 :
                             vanishable_indices: List[int] = []
                             for slotid,slot in enumerate(chosen_game.e_slots) :
@@ -1490,6 +1526,15 @@ while 1 :
                         chosen_game.e_slots[slotid] = (slot[0], None)
                         chosen_game.rel_turn_lap -= len(chosen_game.bullets)
                         print("恭喜恶魔,成功把你变成了猫娘!")
+                elif slot[1] == 33 :
+                    will_use = nightmare or not randint(0, 4)
+                    if will_use and isinstance(chosen_game, NormalGame) and \
+                       chosen_game.explosion_exponent > 0 :
+                        chosen_game.e_slots[slotid] = (slot[0], None)
+                        chosen_game.explosion_exponent = int(
+                            Fraction(2, 3)*chosen_game.explosion_exponent
+                        )
+                        print("恶魔维修了一下枪筒")
             if not chosen_game.bullets :
                 break
             round_turn_count += 1

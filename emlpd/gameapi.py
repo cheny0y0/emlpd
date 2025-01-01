@@ -1,12 +1,13 @@
 from math import ceil
 from random import choice, randint, random
 import struct
-from typing import Dict, List, Optional, Tuple, no_type_check, Union
+from typing import Callable, Dict, List, Optional, Tuple, no_type_check, Union
 
-__all__ = ["VER", "VER_STRING", "Slot", "Game", "GameSave"]
+__all__ = ["VER", "VER_STRING", "Slot", "ShootResult", "ShootResultAnalyzer",
+           "Game", "GameSave"]
 
 VER: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]] = \
-(0, 4, 1, "a", 4)
+(0, 4, 1, "b", 1)
 
 VER_STRING: str = \
 ("{0}.{1}.{2}-{3}{4}" if len(VER) > 4 else "{0}.{1}.{2}").format(*VER)
@@ -23,9 +24,9 @@ class ShootResultAnalyzer :
 @no_type_check
 class Game :
     tools: Dict[int, Tuple[str, str]]
-    tools_sending_weight: Dict[int, int]
+    tools_sending_weight: Dict[int, Union[int, Callable[["Game"], int]]]
     tools_sending_limit_in_game: Dict[int, int]
-    tools_sending_limit_in_slot: Dict[int, int]
+    tools_sending_limit_in_slot: Dict[int, Union[int, Callable[["Game"], int]]]
     r_hp: int
     e_hp: int
     r_slots: List[Slot]
@@ -44,14 +45,16 @@ class Game :
     extra_bullets: Tuple[Optional[List[bool]], Optional[List[bool]],
                          Optional[List[bool]]]
 
-    def __init__(self, min_bullets: int, max_bullets: int,
-                 min_true_bullets: int, min_false_bullets: int,
-                 max_true_bullets: int, r_hp: int, e_hp: int,
-                 tools: Dict[int, Tuple[str, str]],
-                 tools_sending_weight: Dict[int, int],
-                 tools_sending_limit_in_game: Dict[int, int],
-                 tools_sending_limit_in_slot: Dict[int, int],
-                 permanent_slots: int, firsthand: bool) -> None :
+    def __init__(
+        self, min_bullets: int, max_bullets: int, min_true_bullets: int,
+        min_false_bullets: int, max_true_bullets: int, r_hp: int, e_hp: int,
+        tools: Dict[int, Tuple[str, str]],
+        tools_sending_weight: Dict[int, Union[int, Callable[["Game"], int]]],
+        tools_sending_limit_in_game: Dict[int, int],
+        tools_sending_limit_in_slot: Dict[int,
+                                          Union[int, Callable[["Game"], int]]],
+        permanent_slots: int, firsthand: bool
+    ) -> None :
         """
         :param min_bullets: 一回合最少发放的子弹数。
         :param max_bullets: 一回合最多发放的子弹数。
@@ -134,15 +137,15 @@ class Game :
             return None
         return bullets_ref
 
-    def has_tools(self) -> bool :
+    def has_tools(self, toolid: Optional[int] = None) -> bool :
         """
         指示该游戏是否有任何道具。
 
         :return: 一个bool值,若有道具则为True。
         """
 
-        for i in self.tools_sending_weight.values() :
-            if i > 0 :
+        for k, v in self.tools_sending_weight.items() :
+            if v > 0 and (toolid is None or toolid == k) :
                 return True
         return False
 
@@ -183,17 +186,20 @@ class Game :
 
         randomlist: List[int] = []
         for k, v in self.tools_sending_weight.items() :
-            for _ in range(v) :
+            for _ in range(v if isinstance(v, int) else v(self)) :
                 randomlist.append(k)
         while 1 :
             randomid: int = choice(randomlist)
+            tool_sending_limit_in_slot: int = \
+            self.tools_sending_limit_in_slot[randomid] \
+            if isinstance(self.tools_sending_limit_in_slot[randomid], int) \
+            else self.tools_sending_limit_in_slot[randomid](self)
             if (randomid not in self.r_sending_total or \
                 self.tools_sending_limit_in_game[randomid] <= 0 or \
                 self.r_sending_total[randomid] < \
                 self.tools_sending_limit_in_game[randomid]) and \
-               (self.tools_sending_limit_in_slot[randomid] <= 0 or \
-                self.count_tools_of_r(randomid) < \
-                self.tools_sending_limit_in_slot[randomid]) :
+               (tool_sending_limit_in_slot <= 0 or \
+                self.count_tools_of_r(randomid) < tool_sending_limit_in_slot) :
                 return randomid
         raise AssertionError
 
@@ -206,17 +212,20 @@ class Game :
 
         randomlist: List[int] = []
         for k, v in self.tools_sending_weight.items() :
-            for _ in range(v) :
+            for _ in range(v if isinstance(v, int) else v(self)) :
                 randomlist.append(k)
         while 1 :
             randomid: int = choice(randomlist)
+            tool_sending_limit_in_slot: int = \
+            self.tools_sending_limit_in_slot[randomid] \
+            if isinstance(self.tools_sending_limit_in_slot[randomid], int) \
+            else self.tools_sending_limit_in_slot[randomid](self)
             if (randomid not in self.e_sending_total or \
                 self.tools_sending_limit_in_game[randomid] <= 0 or \
                 self.e_sending_total[randomid] < \
                 self.tools_sending_limit_in_game[randomid]) and \
-               (self.tools_sending_limit_in_slot[randomid] <= 0 or \
-                self.count_tools_of_e(randomid) < \
-                self.tools_sending_limit_in_slot[randomid]) :
+               (tool_sending_limit_in_slot <= 0 or \
+                self.count_tools_of_e(randomid) < tool_sending_limit_in_slot) :
                 return randomid
         raise AssertionError
 
@@ -301,7 +310,8 @@ class Game :
             self.yourturn = not self.yourturn
 
     def shoot(self, to_self: bool, shooter: Optional[bool] = None,
-              explosion_probability: float = 0.05,
+              explosion_probability: Union[float,
+                                           Callable[["Game"], float]] = 0.05,
               bullets_id: Optional[int] = None, run_turn: bool = True) -> \
         ShootResult :
         """
@@ -336,7 +346,10 @@ class Game :
             bullets_ref = self.extra_bullets[2]
         if bullets_ref is None or not bullets_ref :
             return (None, None, None, None)
-        exploded: bool = random() < explosion_probability
+        exploded: bool = random() < (
+            explosion_probability if isinstance(explosion_probability, float)
+            else explosion_probability(self)
+        )
         bullet: bool = bullets_ref.pop(0)
         if run_turn and (exploded or bullet or not to_self) :
             self.run_turn()
@@ -349,9 +362,10 @@ class Game :
         return ((bullet, exploded), None, None, None)
 
     def shoots(self, to_self: bool, shooter: Optional[bool] = None,
-               explosion_probability: float = 0.05, combo: int = 1,
-               bullets_id: Optional[int] = None, run_turn: bool = True) -> \
-        List[ShootResult] :
+               explosion_probability: Union[float,
+                                            Callable[["Game"], float]] = 0.05,
+               combo: int = 1, bullets_id: Optional[int] = None,
+               run_turn: bool = True) -> List[ShootResult] :
         """
         执行开枪操作。
 
@@ -374,7 +388,7 @@ class Game :
         return RES
 
     def send_r_slot(self, sent_probability: float = 0.25,
-                    sent_weight: Dict[int, int] = \
+                    sent_weight: Optional[Dict[int, int]] = \
                     {1: 5, 2: 6, 3: 6, 4: 2, 5: 1}) -> Optional[int] :
         """
         向“你”送出一个槽位。
@@ -384,18 +398,20 @@ class Game :
         :return: 送出槽位的时长。若未送出则返回None。
         """
 
-        if random() >= sent_probability :
+        if sent_weight is None or random() >= sent_probability :
             return None
         randomlist: List[int] = []
         for k, v in sent_weight.items() :
             for _ in range(v) :
                 randomlist.append(k)
+        if not randomlist :
+            return None
         duration: int = choice(randomlist)
         self.r_slots.append((duration, None))
         return duration
 
     def send_e_slot(self, sent_probability: float = 0.25,
-                    sent_weight: Dict[int, int] = \
+                    sent_weight: Optional[Dict[int, int]] = \
                     {1: 5, 2: 6, 3: 6, 4: 2, 5: 1}) -> Optional[int] :
         """
         向恶魔送出一个槽位。
@@ -405,12 +421,14 @@ class Game :
         :return: 送出槽位的时长。若未送出则返回None。
         """
 
-        if random() >= sent_probability :
+        if sent_weight is None or random() >= sent_probability :
             return None
         randomlist: List[int] = []
         for k, v in sent_weight.items() :
             for _ in range(v) :
                 randomlist.append(k)
+        if not randomlist :
+            return None
         duration: int = choice(randomlist)
         self.e_slots.append((duration, None))
         return duration
