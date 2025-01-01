@@ -211,12 +211,30 @@ while 1 :
                   chosen_game.tools[tool_id][0], "不翼而飞")
     sleep(1)
     r_new_slot: Optional[int] = chosen_game.send_r_slot()
-    e_new_slot: Optional[int] = chosen_game.send_e_slot(1., {5: 1}) if \
-                                nightmare else chosen_game.send_e_slot()
+    e_new_slot: Optional[int]
+    if nightmare :
+        filtered: List[int] = []
+        for i in filter(lambda key: (
+            chosen_game.slot_sending_weight[key] if isinstance(
+                chosen_game.slot_sending_weight[key], int
+            ) else chosen_game.slot_sending_weight[key](chosen_game)
+        ) > 0, chosen_game.slot_sending_weight) :
+            filtered.append(i)
+        e_new_slot = chosen_game.send_e_slot(1., {
+            0 if min(filtered) <= 0 else max(filtered): 1
+        }) if filtered else None
+    else :
+        e_new_slot = chosen_game.send_e_slot()
     if r_new_slot is not None :
-        print("你获得1个有效期", r_new_slot, "回合的空槽位")
+        if r_new_slot > 0 :
+            print("你获得1个有效期", r_new_slot, "回合的空槽位")
+        else :
+            print("你获得1个永久空槽位")
     if e_new_slot is not None :
-        print("恶魔获得1个有效期", e_new_slot, "回合的空槽位")
+        if e_new_slot > 0 :
+            print("恶魔获得1个有效期", e_new_slot, "回合的空槽位")
+        else :
+            print("恶魔获得1个永久空槽位")
     if chosen_game.has_tools() :
         print("你获得",
               chosen_game.send_tools_to_r(GAMEMODE_SET[gamemode_i][1]),
@@ -262,23 +280,22 @@ while 1 :
             if debug :
                 print("当前弹夹:", chosen_game.bullets)
                 print("当前额外弹夹:", chosen_game.extra_bullets)
-                print("你的体力:", r_stamina)
-                print("恶魔体力:", e_stamina)
+                print("双方体力:", r_stamina, "-", e_stamina)
                 print("当前相对套轮数:", chosen_game.rel_turn_lap)
                 print("你的防弹衣:", r_bulletproof)
                 print("恶魔的防弹衣:", e_bulletproof)
-                print("你的叠加接弹套:", r_bullet_catcher_level)
-                print("恶魔的叠加接弹套:", e_bullet_catcher_level)
-                print("你的叠加双发射手:", r_multishoot_level)
-                print("恶魔的叠加双发射手:", e_multishoot_level)
-                print("你的叠加连发射手:", r_comboshoot_level)
-                print("恶魔的叠加连发射手:", e_comboshoot_level)
-                print("你的破枪数:", r_cursed_shoot_level)
-                print("恶魔的破枪数:", e_cursed_shoot_level)
-                print("你的破防回合数:", r_breakcare_rounds)
-                print("恶魔的破防回合数:", e_breakcare_rounds)
-                print("你的破防潜能:", r_breakcare_potential)
-                print("恶魔的破防潜能:", e_breakcare_potential)
+                print("双方的叠加接弹套:", r_bullet_catcher_level, "-",
+                      e_bullet_catcher_level)
+                print("双方的叠加双发射手:", r_multishoot_level, "-",
+                      e_multishoot_level)
+                print("双方的叠加连发射手:", r_comboshoot_level, "-",
+                      e_comboshoot_level)
+                print("双方的破枪数:", r_cursed_shoot_level, "-",
+                      e_cursed_shoot_level)
+                print("双方的破防回合数:", r_breakcare_rounds, "-",
+                      e_breakcare_rounds)
+                print("双方的破防潜能:", r_breakcare_potential, "-",
+                      e_breakcare_potential)
                 if isinstance(chosen_game, NormalGame) :
                     print("当前炸膛指数:", chosen_game.explosion_exponent)
             print("当前为你的回合")
@@ -321,11 +338,18 @@ while 1 :
                               chosen_game.tools[k][0])
                     else :
                         print("道具", k, ":", chosen_game.tools[k][0])
-                    print("作用:", chosen_game.tools[k][1])
+                    if chosen_game.tools[k][1] is None :
+                        print("此道具无描述")
+                    else :
+                        print("描述:", chosen_game.tools[k][1])
                 for slot in chosen_game.r_slots :
                     if slot[1] is not None and slot[0] > 0 :
-                        print("道具", slot[1], ":", chosen_game.tools[slot[1]][0])
-                        print("作用:", chosen_game.tools[slot[1]][1])
+                        print("道具", slot[1], ":",
+                              chosen_game.tools[slot[1]][0])
+                        if chosen_game.tools[slot[1]][1] is None :
+                            print("此道具无描述")
+                        else :
+                            print("描述:", chosen_game.tools[slot[1]][1])
                         print("还有", slot[0], "回合到期")
                 if not tools_existence :
                     print("(空)")
@@ -454,7 +478,7 @@ while 1 :
                                 new_keep_rounds: int
                                 if TYPE_CHECKING :
                                     new_keep_rounds = \
-                                    getattr(chosen_game, "slots_sharing")[1] + \
+                                    getattr(chosen_game, "slots_sharing")[1] +\
                                     choice([1, 1, 1, 2, 2, 2, 2, 2, 3, 3])
                                 else :
                                     new_keep_rounds = \
@@ -504,10 +528,18 @@ while 1 :
                                     (chosen_game.r_slots[vanish_index][0],None)
                             elif dice_sum == 8 :
                                 pass
+                            elif dice_sum == 9 :
+                                if r_stamina < 32 :
+                                    r_stamina += 1
                             elif dice_sum == 10 :
                                 chosen_game.r_hp += 1
                                 gamesave.healed += 1
                                 print("你获得了1点生命")
+                            elif dice_sum == 11 :
+                                if r_stamina < 32 :
+                                    r_stamina += 1
+                                    if r_stamina < 32 :
+                                        r_stamina += 1
                             elif dice_sum == 12 :
                                 r_attack_boost += 2
                                 if randint(0, 1) :
@@ -807,8 +839,8 @@ while 1 :
                         elif to_use == 33 :
                             if isinstance(chosen_game, NormalGame) and \
                                chosen_game.explosion_exponent > 0 :
-                                chosen_game.r_slots[tools_existence[31]] = \
-                                (chosen_game.r_slots[tools_existence[31]][0],
+                                chosen_game.r_slots[tools_existence[33]] = \
+                                (chosen_game.r_slots[tools_existence[33]][0],
                                  None)
                                 chosen_game.explosion_exponent = int(
                                     Fraction(2, 3)*\
@@ -854,13 +886,19 @@ while 1 :
                               chosen_game.tools[k][0])
                     else :
                         print("道具", k, ":", chosen_game.tools[k][0])
-                    print("作用:", chosen_game.tools[k][1])
+                    if chosen_game.tools[k][1] is None :
+                        print("此道具无描述")
+                    else :
+                        print("描述:", chosen_game.tools[k][1])
                 for slot in chosen_game.e_slots :
                     if slot[1] is not None and slot[0] > 0 :
                         e_has_tool = True
                         print("道具", slot[1], ":",
                               chosen_game.tools[slot[1]][0])
-                        print("作用:", chosen_game.tools[slot[1]][1])
+                        if chosen_game.tools[slot[1]][1] is None :
+                            print("此道具无描述")
+                        else :
+                            print("描述:", chosen_game.tools[slot[1]][1])
                         print("还有", slot[0], "回合到期")
                 if not e_has_tool :
                     print("(空)")
@@ -1045,7 +1083,10 @@ while 1 :
                 true_on_e = False
                 if r_stamina > 0 :
                     r_stamina -= 1
-                if r_selfshoot_promises :
+                if r_cursed_shoot_level > 0 :
+                    shoot_result = chosen_game.shoot(True, True, 1.)
+                    r_cursed_shoot_level -= 1
+                elif r_selfshoot_promises :
                     shoot_result = chosen_game.shoot(True, True, 0.)
                     r_selfshoot_promises -= 1
                 else :
@@ -1312,9 +1353,17 @@ while 1 :
                                 (chosen_game.e_slots[vanish_index][0], None)
                         elif dice_sum == 8 :
                             pass
+                        elif dice_sum == 9 :
+                            if e_stamina < 32 :
+                                e_stamina += 1
                         elif dice_sum == 10 :
                             chosen_game.e_hp += 1
                             print("恶魔获得了1点生命")
+                        elif dice_sum == 11 :
+                            if e_stamina < 32 :
+                                e_stamina += 1
+                                if e_stamina < 32 :
+                                    e_stamina += 1
                         elif dice_sum == 12 :
                             e_attack_boost += 2
                             if randint(0, 1) :

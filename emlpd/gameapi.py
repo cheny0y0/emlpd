@@ -7,7 +7,7 @@ __all__ = ["VER", "VER_STRING", "Slot", "ShootResult", "ShootResultAnalyzer",
            "Game", "GameSave"]
 
 VER: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]] = \
-(0, 4, 1, "b", 1)
+(0, 4, 1, "b", 2)
 
 VER_STRING: str = \
 ("{0}.{1}.{2}-{3}{4}" if len(VER) > 4 else "{0}.{1}.{2}").format(*VER)
@@ -23,7 +23,7 @@ class ShootResultAnalyzer :
 
 @no_type_check
 class Game :
-    tools: Dict[int, Tuple[str, str]]
+    tools: Dict[int, Tuple[str, Optional[str]]]
     tools_sending_weight: Dict[int, Union[int, Callable[["Game"], int]]]
     tools_sending_limit_in_game: Dict[int, int]
     tools_sending_limit_in_slot: Dict[int, Union[int, Callable[["Game"], int]]]
@@ -44,16 +44,20 @@ class Game :
     rel_turn_lap: int
     extra_bullets: Tuple[Optional[List[bool]], Optional[List[bool]],
                          Optional[List[bool]]]
+    slot_sending_weight: Dict[int, Union[int, Callable[["Game"], int]]]
 
     def __init__(
         self, min_bullets: int, max_bullets: int, min_true_bullets: int,
         min_false_bullets: int, max_true_bullets: int, r_hp: int, e_hp: int,
-        tools: Dict[int, Tuple[str, str]],
+        tools: Dict[int, Tuple[str, Optional[str]]],
         tools_sending_weight: Dict[int, Union[int, Callable[["Game"], int]]],
         tools_sending_limit_in_game: Dict[int, int],
         tools_sending_limit_in_slot: Dict[int,
                                           Union[int, Callable[["Game"], int]]],
-        permanent_slots: int, firsthand: bool
+        permanent_slots: int, firsthand: bool,
+        slot_sending_weight: Optional[Dict[int, Union[int, Callable[["Game"],
+                                                                    int]]]] = \
+        None
     ) -> None :
         """
         :param min_bullets: 一回合最少发放的子弹数。
@@ -69,6 +73,7 @@ class Game :
         :param tools_sending_limit_in_slot: 槽位中道具存在的最大数(键为道具ID,值为最大数值)。
         :param permanent_slots: 永久槽位数。
         :param firsthand: 指定谁是先手。True为“你”是先手,False为恶魔是先手。
+        :param slot_sending_weight: 槽位发放相对权重(键为槽位有效期,值为相对权重值)。
         """
 
         self.min_bullets = min_bullets
@@ -90,6 +95,9 @@ class Game :
         self.yourturn = firsthand
         self.rel_turn_lap = 0
         self.extra_bullets = (None, None, None)
+        self.slot_sending_weight = {1: 5, 2: 6, 3: 6, 4: 2, 5: 1} \
+                                   if slot_sending_weight is None \
+                                   else slot_sending_weight.copy()
 
     def gen_bullets(self, bullets_id: Optional[int] = None) -> \
         Optional[List[bool]] :
@@ -388,8 +396,9 @@ class Game :
         return RES
 
     def send_r_slot(self, sent_probability: float = 0.25,
-                    sent_weight: Optional[Dict[int, int]] = \
-                    {1: 5, 2: 6, 3: 6, 4: 2, 5: 1}) -> Optional[int] :
+                    sent_weight: Optional[Dict[int, Union[int, Callable[
+                        ["Game"], int
+                    ]]]] = None) -> Optional[int] :
         """
         向“你”送出一个槽位。
 
@@ -398,11 +407,13 @@ class Game :
         :return: 送出槽位的时长。若未送出则返回None。
         """
 
-        if sent_weight is None or random() >= sent_probability :
+        if sent_weight is None :
+            return self.send_r_slot(sent_probability, self.slot_sending_weight)
+        if random() >= sent_probability :
             return None
         randomlist: List[int] = []
         for k, v in sent_weight.items() :
-            for _ in range(v) :
+            for _ in range(v if isinstance(v, int) else v(self)) :
                 randomlist.append(k)
         if not randomlist :
             return None
@@ -411,8 +422,9 @@ class Game :
         return duration
 
     def send_e_slot(self, sent_probability: float = 0.25,
-                    sent_weight: Optional[Dict[int, int]] = \
-                    {1: 5, 2: 6, 3: 6, 4: 2, 5: 1}) -> Optional[int] :
+                    sent_weight: Optional[Dict[int, Union[int, Callable[
+                        ["Game"], int
+                    ]]]] = None) -> Optional[int] :
         """
         向恶魔送出一个槽位。
 
@@ -421,11 +433,13 @@ class Game :
         :return: 送出槽位的时长。若未送出则返回None。
         """
 
-        if sent_weight is None or random() >= sent_probability :
+        if sent_weight is None :
+            return self.send_e_slot(sent_probability, self.slot_sending_weight)
+        if random() >= sent_probability :
             return None
         randomlist: List[int] = []
         for k, v in sent_weight.items() :
-            for _ in range(v) :
+            for _ in range(v if isinstance(v, int) else v(self)) :
                 randomlist.append(k)
         if not randomlist :
             return None

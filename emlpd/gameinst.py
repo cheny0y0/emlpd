@@ -7,7 +7,7 @@ from .gameapi import Game, Slot, ShootResult
 __all__ = ["GENERIC_TOOLS", "GAMEMODE_SET", "gen_tools_from_generic_tools",
            "NormalGame"]
 
-GENERIC_TOOLS: Tuple[Tuple[str, str], ...] = (
+GENERIC_TOOLS: Tuple[Tuple[str, Optional[str]], ...] = (
     ("良枪(一)", "保证向自己开枪不会炸膛(无提示)"), # ID0
     ("良枪(二)", "保证向对方开枪不会炸膛(无提示)"), # ID1
     ("小刀", "非常不讲武德的提升1点伤害(无上限)"), # ID2
@@ -57,18 +57,21 @@ class NormalGame(Game) :
     def __init__(
         self, min_bullets: int, max_bullets: int, min_true_bullets: int,
         min_false_bullets: int, max_true_bullets: int, r_hp: int, e_hp: int,
-        tools: Dict[int, Tuple[str, str]],
+        tools: Dict[int, Tuple[str, Optional[str]]],
         tools_sending_weight: Dict[int, Union[int, Callable[["Game"], int]]],
         tools_sending_limit_in_game: Dict[int, int],
         tools_sending_limit_in_slot: Dict[int,
                                           Union[int, Callable[["Game"], int]]],
-        permanent_slots: int, firsthand: bool
+        permanent_slots: int, firsthand: bool,
+        slot_sending_weight: Optional[Dict[int, Union[int, Callable[["Game"],
+                                                                    int]]]] = \
+        None
     ) :
         super().__init__(
             min_bullets, max_bullets, min_true_bullets, min_false_bullets,
             max_true_bullets, r_hp, e_hp, tools, tools_sending_weight,
             tools_sending_limit_in_game, tools_sending_limit_in_slot,
-            permanent_slots, firsthand
+            permanent_slots, firsthand, slot_sending_weight
         )
         self.explosion_exponent = 0
 
@@ -319,7 +322,7 @@ infinite_mode: NormalGame = NormalGame(
         32: 3,
         33: 3
     },
-    8,
+    9,
     True
 )
 
@@ -345,7 +348,8 @@ xiaodao_party: NormalGame = NormalGame(
         3: 10
     },
     100,
-    True
+    True,
+    {}
 )
 
 dice_kingdom: NormalGame = NormalGame(
@@ -367,7 +371,8 @@ dice_kingdom: NormalGame = NormalGame(
         11: 0
     },
     100,
-    True
+    True,
+    {}
 )
 
 class InfiniteMode2 :
@@ -500,7 +505,7 @@ class InfiniteMode2 :
                 32: 3,
                 33: 3
             },
-            8,
+            9,
             True
         )
         if r_slots is not None :
@@ -602,8 +607,9 @@ onlybyhand: NormalGame = NormalGame(
     {},
     {},
     {},
-    1,
-    not randint(0, 1)
+    0,
+    not randint(0, 1),
+    {}
 )
 
 GAMEMODE_SET: Dict[int, Union[

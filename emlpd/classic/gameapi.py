@@ -26,14 +26,16 @@ class Game :
     yourturn: bool
     rel_turn_lap: int
 
-    def __init__(self, min_bullets: int, max_bullets: int,
-                 min_true_bullets: int, min_false_bullets: int,
-                 max_true_bullets: int, r_hp: int, e_hp: int,
-                 tools: Dict[int, Tuple[str, str]],
-                 tools_sending_weight: Dict[int, int],
-                 tools_sending_limit_in_game: Dict[int, int],
-                 tools_sending_limit_in_hand: Dict[int, int],
-                 max_tools_storing: int = 8, firsthand: bool = True) -> None :
+    def __init__(
+        self, min_bullets: int, max_bullets: int, min_true_bullets: int,
+        min_false_bullets: int, max_true_bullets: int, r_hp: int, e_hp: int,
+        tools: Dict[int, Tuple[str, str]],
+        tools_sending_weight: Dict[int, Union[int, Callable[["Game"], int]]],
+        tools_sending_limit_in_game: Dict[int, int],
+        tools_sending_limit_in_hand: Dict[int,
+                                          Union[int, Callable[["Game"], int]]],
+        max_tools_storing: int = 8, firsthand: bool = True
+    ) -> None :
         """
         :param min_bullets: 一回合最少发放的子弹数。
         :param max_bullets: 一回合最多发放的子弹数。
