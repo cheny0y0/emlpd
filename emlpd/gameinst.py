@@ -389,8 +389,11 @@ class InfiniteMode2 :
     def __next__(self) -> Game :
         if self.last_game is not None and self.last_game.r_hp <= 0 :
             raise StopIteration
-        r_slots: Optional[List[Slot]] = \
-        None if self.last_game is None else self.last_game.r_slots
+        r_slots: Optional[List[Slot]] = None if self.last_game is None else (
+            self.last_game.r_slots if self.last_game.slots_sharing is None or \
+                                      not self.last_game.slots_sharing[0] else\
+            self.last_game.slots_sharing[2]
+        )
         explosion_exponent: Optional[int] = \
         None if self.last_game is None else self.last_game.explosion_exponent
         self.last_game = NormalGame(

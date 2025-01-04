@@ -7,7 +7,7 @@ __all__ = ["VER", "VER_STRING", "Slot", "ShootResult", "ShootResultAnalyzer",
            "Game", "GameSave"]
 
 VER: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]] = \
-(0, 4, 1, "b", 3)
+(0, 4, 1, "rc", 1)
 
 VER_STRING: str = \
 ("{0}.{1}.{2}-{3}{4}" if len(VER) > 4 else "{0}.{1}.{2}").format(*VER)
@@ -153,7 +153,8 @@ class Game :
         """
 
         for k, v in self.tools_sending_weight.items() :
-            if v > 0 and (toolid is None or toolid == k) :
+            if (v if isinstance(v, int) else v(self)) > 0 and \
+               (toolid is None or toolid == k) :
                 return True
         return False
 

@@ -125,9 +125,37 @@ while 1 :
     if chosen_game.r_hp <= 0 or chosen_game.e_hp <= 0 :
         try :
             if chosen_game.r_hp <= 0 :
+                r_hurts = 0
+                r_selfshoot_promises = 0
+                r_breakcare_potential = 0
+                r_breakcare_rounds = 0
+                r_stamina = 32
+                r_againstshoot_promises = 0
                 r_bulletproof.clear()
+                r_bullet_catcher_level = 0
+                r_multishoot_level = 0
+                r_comboshoot_level = 0
+                r_cursed_shoot_level = 0
+                r_0band_level = 0
+                r_1band_level = 0
+            else :
+                r_stamina += (32-r_stamina) // 2
             if chosen_game.e_hp <= 0 :
+                e_hurts = 0
+                e_selfshoot_promises = 0
+                e_breakcare_potential = 0
+                e_breakcare_rounds = 0
+                e_stamina = 32
+                e_againstshoot_promises = 0
                 e_bulletproof.clear()
+                e_bullet_catcher_level = 0
+                e_multishoot_level = 0
+                e_comboshoot_level = 0
+                e_cursed_shoot_level = 0
+                e_0band_level = 0
+                e_1band_level = 0
+            else :
+                e_stamina += (32-e_stamina) // 2
             if chosen_game.e_hp <= 0 :
                 if nightmare :
                     gamesave.add_exp(ceil(10*(2-chosen_game.e_hp)*\
@@ -151,8 +179,6 @@ while 1 :
             period_turn_count = 0
             period_round_count = 0
             base_attack = 1
-            r_stamina += (32-r_stamina) // 2
-            e_stamina += (32-e_stamina) // 2
             print("=== 第", total_period_count, "周目 ===")
         except StopIteration :
             break
@@ -279,23 +305,45 @@ while 1 :
         if chosen_game.yourturn :
             if debug :
                 print("当前弹夹:", chosen_game.bullets)
-                print("当前额外弹夹:", chosen_game.extra_bullets)
+                if chosen_game.has_tools(29) or \
+                   chosen_game.extra_bullets != (None, None, None) :
+                    print("当前额外弹夹:", chosen_game.extra_bullets)
                 print("双方体力:", r_stamina, "-", e_stamina)
                 print("当前相对套轮数:", chosen_game.rel_turn_lap)
-                print("你的防弹衣:", r_bulletproof)
-                print("恶魔的防弹衣:", e_bulletproof)
-                print("双方的叠加接弹套:", r_bullet_catcher_level, "-",
-                      e_bullet_catcher_level)
-                print("双方的叠加双发射手:", r_multishoot_level, "-",
-                      e_multishoot_level)
-                print("双方的叠加连发射手:", r_comboshoot_level, "-",
-                      e_comboshoot_level)
-                print("双方的破枪数:", r_cursed_shoot_level, "-",
-                      e_cursed_shoot_level)
-                print("双方的破防回合数:", r_breakcare_rounds, "-",
-                      e_breakcare_rounds)
-                print("双方的破防潜能:", r_breakcare_potential, "-",
-                      e_breakcare_potential)
+                if chosen_game.has_tools(9) or r_bulletproof or e_bulletproof :
+                    print("你的防弹衣:", r_bulletproof)
+                    print("恶魔的防弹衣:", e_bulletproof)
+                if chosen_game.has_tools(14) or r_bullet_catcher_level or \
+                   e_bullet_catcher_level :
+                    print("双方的叠加接弹套:", r_bullet_catcher_level, "-",
+                          e_bullet_catcher_level)
+                if chosen_game.has_tools(17) or r_multishoot_level or \
+                   e_multishoot_level :
+                    print("双方的叠加双发射手:", r_multishoot_level, "-",
+                          e_multishoot_level)
+                if chosen_game.has_tools(18) or r_comboshoot_level or \
+                   e_comboshoot_level :
+                    print("双方的叠加连发射手:", r_comboshoot_level, "-",
+                          e_comboshoot_level)
+                if chosen_game.has_tools(0) or r_selfshoot_promises or \
+                   e_selfshoot_promises :
+                    print("双方的良枪(一)数:", r_selfshoot_promises, "-",
+                          e_selfshoot_promises)
+                if chosen_game.has_tools(1) or r_againstshoot_promises or \
+                   e_againstshoot_promises :
+                    print("双方的良枪(二)数:", r_againstshoot_promises, "-",
+                          e_againstshoot_promises)
+                if chosen_game.has_tools(21) or r_cursed_shoot_level or \
+                   e_cursed_shoot_level :
+                    print("双方的破枪数:", r_cursed_shoot_level, "-",
+                          e_cursed_shoot_level)
+                if chosen_game.has_tools(9) or chosen_game.has_tools(11) or \
+                   r_breakcare_rounds or e_breakcare_rounds or \
+                   r_breakcare_potential or e_breakcare_potential :
+                    print("双方的破防回合数:", r_breakcare_rounds, "-",
+                          e_breakcare_rounds)
+                    print("双方的破防潜能:", r_breakcare_potential, "-",
+                          e_breakcare_potential)
                 if isinstance(chosen_game, NormalGame) :
                     print("当前炸膛指数:", chosen_game.explosion_exponent)
             operation: int = 2
