@@ -41,7 +41,7 @@ GENERIC_TOOLS: Tuple[Tuple[str, Optional[str]], ...] = (
     ("所有或一无所有", "一夜暴富?一夜归零?"), # ID30 TODO
     ("超级大木锤", "整回合都是我的了"), # ID31
     ("不死不休", "打上擂台"), # ID32 TODO
-    ("枪筒维修", "降低开枪的炸膛概率") # ID33 TODO
+    ("枪筒维修", "降低开枪的炸膛概率") # ID33
 )
 
 def gen_tools_from_generic_tools(toolids: Iterable[int]) -> \
@@ -78,7 +78,7 @@ class NormalGame(Game) :
     def shoot(self, to_self: bool, shooter: Optional[bool] = None,
               explosion_probability: Union[float, Callable[["Game"], float]] =\
               lambda game: float(
-                  1-Fraction(1535, 1536)**(60+game.explosion_exponent)
+                  (1-Fraction(1023, 1024)**(200+game.explosion_exponent))**2
               ), bullets_id: Optional[int] = None, run_turn: bool = True) -> \
         ShootResult :
         res: ShootResult = super().shoot(
@@ -91,7 +91,7 @@ class NormalGame(Game) :
     def shoots(self, to_self: bool, shooter: Optional[bool] = None,
                explosion_probability: Union[float, Callable[["Game"],float]] =\
                lambda game: float(
-                   1-Fraction(1535, 1536)**(60+game.explosion_exponent)
+                   (1-Fraction(1023, 1024)**(200+game.explosion_exponent))**2
                ), combo: int = 1, bullets_id: Optional[int] = None,
                run_turn: bool = True) -> List[ShootResult] :
         return super().shoots(

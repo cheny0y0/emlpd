@@ -242,8 +242,8 @@ while 1 :
         print("恶魔获得",
               chosen_game.send_tools_to_e(GAMEMODE_SET[gamemode_i][1]),
               "个道具")
+        sleep(1)
     chosen_game.gen_bullets()
-    sleep(1)
     print("子弹共有", len(chosen_game.bullets), "发")
     sleep(1)
     print("实弹", chosen_game.bullets.count(True), "发 , 空弹",
@@ -298,11 +298,11 @@ while 1 :
                       e_breakcare_potential)
                 if isinstance(chosen_game, NormalGame) :
                     print("当前炸膛指数:", chosen_game.explosion_exponent)
-            print("当前为你的回合")
             operation: int = 2
             if r_breakcare_rounds > 0 :
                 operation = randint(0, 1)
             else :
+                print("本轮由你操作")
                 print(
                     "请选择:1朝对方开枪,0朝自己开枪,7打开道具库,8查看对方道具"\
                     if chosen_game.has_tools() or \
@@ -354,7 +354,7 @@ while 1 :
                 if not tools_existence :
                     print("(空)")
                 while tools_existence :
-                    print("返回请输入任意字母")
+                    print("返回请直接按回车")
                     to_use: Optional[int] = None
                     try:
                         to_use = int(input("使用道具请按它的对应编号:"))

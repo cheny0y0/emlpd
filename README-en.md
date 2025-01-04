@@ -41,11 +41,11 @@ Game running 1 time is called 1 game.
 #### Tools' Descriptions
 ##### Tool 0: Liáng Qiāng(Yī)
 Decrease your stacked badguns by 1 if **Pò Qiāng** is used by the opposite,
-otherwide increase your stacked goodgun(foo) by 1.  
+otherwise increase your stacked goodgun(foo) by 1.  
 _See Tool 21: **Pò Qiāng**_
 ##### Tool 1: Liáng Qiāng(Èr)
 Decrease your stacked badguns by 1 if **Pò Qiāng** is used by the opposite,
-otherwide increase your stacked goodgun(bar) by 1.  
+otherwise increase your stacked goodgun(bar) by 1.  
 _See Tool 21: **Pò Qiāng**_
 ##### Tool 2: Xiǎo Dāo
 If _n_(_n_∈**N**) **Xiǎo Dāo**s is used this turn, attach _n_ points of
@@ -78,9 +78,9 @@ All three are mutually exclusive.
 Append a bulletproof wearing with a durability exponent of 3 to the outermost
 layer. When you have at least 1 bulletproof wearing, when a bullet is shot at
 you, suppose the extra damage value of the turn is _n_(_n_∈**N**), the
-outermost bulletproof wearing will first reduce randint(1,ceil(√(_n_+1)))
-points of durability exponent. Subsequently, suppose the durability exponent of
-the outermost bulletproof wearing is _m_(_m_∈**Z**), if _m_<0, the bulletproof
+outermost bulletproof wearing will first reduce randint(1,⌈√(_n_+1)⌉) points of
+durability exponent. Subsequently, suppose the durability exponent of the
+outermost bulletproof wearing is _m_(_m_∈**Z**), if _m_<0, the bulletproof
 wearing has a probability of 1-pow(2,_m_) of disappearing.  
 If 1 bulletproof wearing disappears, your break care potential increases by 1;
 if there is no bulletproof weareing after the bulletproof wearing disappears,
@@ -126,14 +126,14 @@ And you and the opposite's dazing rounds will become 0.
 Let your stacked bullet catcher increase by 1. Suppose you currently have
 _n_(_n_∈**N₊**) stacked bullet catchers, the opposite's additional damage is
 _m_(_m_∈**N**), if the opposite shoots 1 true bullet, there is a probability of
-(1-pow(0.8,_n_))/(1+_m_) that you will catch it(avoids the damage from the
-bullet and tells you “你接住了一颗子弹”) and put it into the tail of the main
-clip, and let your stacked bullet catcher be 0; if the opposite shoots 1 false
-bullet, there is a probability of 0.8/(1+_m_) that you will catch it(tells you
+(1-0.8ⁿ)/(1+_m_) that you will catch it(avoids the damage from the bullet and
+tells you “你接住了一颗子弹”) and put it into the tail of the main clip, and
+let your stacked bullet catcher be 0; if the opposite shoots 1 false bullet,
+there is a probability of 0.8/(1+_m_) that you will catch it(tells you
 “你接住了一颗子弹”) and put it into the tail of the main clip, and let your
 stacked bullet catcher decrease by 1.
 ##### Tool 15: Tián Shí
-Suppose there are _n_(_n_ ∈ **N₊**) bullets in the main clip now, then for
+Suppose there are _n_(_n_∈**N₊**) bullets in the main clip now, then for
 each false bullet in the main clip there is a probability of 1/_n_ that it will
 become a true bullet. If at least one false bullet becomes a true bullet, the
 message “弹夹有变动” will be displayed.
@@ -173,13 +173,13 @@ goodgun(foo) count is _m_(_m_∈**N**), your stacked goodgun(bar) count is
 _n_(_n_∈**N**), and your stacked badgun number is _r_(_r_∈**N**). If shooting
 at oneself, when _r_>0, there is a 100% probability of exploding for each
 bullet shot; when _r_=0 and _m_>0, there is a 0% probability of exploding for
-each bullet shot; otherwise, there is a probability of 1-pow(1535/1536,_h_+60)
-of exploding for each bullet shot. If shooting at the opposite, when _r_>0,
-there is a 100% probability of exploding for each bullet shot; when _r_=0 and
-_n_>0, there is a 0% probability of exploding for each bullet shot; otherwise,
-there is a probability of 1-pow(1535/1536,_h_+60) of exploding for each bullet
-shot. The explosion exponent increases by 1 when each bullet shot (whether
-exploded or not).
+each bullet shot; otherwise, there is a probability of
+(1-pow(1023/1024,_h_+200))² of exploding for each bullet shot. If shooting at
+the opposite, when _r_>0, there is a 100% probability of exploding for each
+bullet shot; when _r_=0 and _n_>0, there is a 0% probability of exploding for
+each bullet shot; otherwise, there is a probability of
+(1-pow(1023/1024,_h_+200))² of exploding for each bullet shot. The explosion
+exponent increases by 1 when each bullet shot (whether exploded or not).
 ##### Tool 22: Qǔ Chū Zǐ Dàn
 Take 1 bullet from the location you specified out from the main clip and change
 it to a tool **Shí Dàn** or **Kōng Dàn** and tell you so.
