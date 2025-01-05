@@ -164,12 +164,12 @@ while 1 :
                     gamesave.add_exp(10*(2-chosen_game.e_hp))
                 if not debug :
                     gamesave.add_coins()
+            chosen_game = next(chosen_games)
             try :
                 with open("emlpd.dat", "wb") as gamesave_file :
                     gamesave_file.write(gamesave.serialize())
             except OSError as err :
                 print("存档时遇到问题!", err)
-            chosen_game = next(chosen_games)
             total_period_count += 1
             gamesave.play_periods += 1
             print("================")
