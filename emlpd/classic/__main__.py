@@ -18,6 +18,7 @@ print("恶魔轮盘赌（重构版） v"+VER_STRING)
 debug: bool = "debug" in argv[1:]
 nightmare: bool = "nightmare" in argv[1:]
 show_pp: bool = "show_pp" in argv[1:]
+skipthread: bool = "skipthread" in argv[1:]
 
 try :
     with open("emlpd.dat", "rb") as gamesave_file :
@@ -32,16 +33,20 @@ except Exception as err :
 if nightmare :
     print("警告：梦魇模式已激活。恶魔会变得无比强大！！！")
 print("“哦！看看，又一个来送死的”")
-sleep(2.5)
+if not skipthread :
+    sleep(2.5)
 print("“希望你能让我玩的尽兴”")
-sleep(2.5)
+if not skipthread :
+    sleep(2.5)
 print("“现在开始我们的游戏吧”")
-sleep(1.5)
+if not skipthread :
+    sleep(1.5)
 
 print("当前等级:", gamesave.level)
 print("当前经验:", gamesave.exp, "/", 250*(gamesave.level+1))
 print("当前金币数:", gamesave.coins, "/ 65535")
-sleep(2)
+if not skipthread :
+    sleep(2)
 
 attack_boost: int = 0
 r_pp: int = 0
@@ -118,7 +123,9 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
                 print("当前你的表现分:", r_pp)
                 print("当前恶魔表现分:", e_pp)
             print("当前为你的回合")
-            print("请选择：1朝对方开枪，0朝自己开枪，7打开道具库，8查看对方道具")
+            print(
+                "请选择：1朝对方开枪，0朝自己开枪，7打开道具库，8查看对方道具"
+            )
             operation: int = 2
             try :
                 operation = int(input())
@@ -127,7 +134,8 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
             if operation == 7 :
                 print("道具库：")
                 for tool in CLASSIC_MODE.r_tools :
-                    print("道具", tool, "：", CLASSIC_MODE.tools[tool][0], sep="")
+                    print("道具", tool, "：", CLASSIC_MODE.tools[tool][0],
+                          sep="")
                     print("作用", CLASSIC_MODE.tools[tool][1], sep="：")
                 print("返回请输入任意字母")
                 to_use: Optional[int] = None
@@ -142,8 +150,9 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
                         print("你使用了小刀，结果会如何呢？真让人期待")
                     elif to_use == 3 :
                         CLASSIC_MODE.r_tools.remove(3)
-                        print("你排出了一颗实弹" if CLASSIC_MODE.bullets.pop(0) else \
-                              "你排出了一颗空弹")
+                        print("你排出了一颗实弹" \
+                              if CLASSIC_MODE.bullets.pop(0) \
+                              else "你排出了一颗空弹")
                         if r_bullet_unknown is not None :
                             r_bullet_unknown = True
                     elif to_use == 4 :
@@ -163,17 +172,20 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
                             gamesave.healed += 1
                             print("你使用了道德的崇高赞许，回复了一点生命")
                         else :
-                            print("因为你的不诚实，你并未回复生命，甚至失去了道德的崇高赞许")
+                            print("因为你的不诚实，你并未回复生命，"
+                                  "甚至失去了道德的崇高赞许")
                     elif to_use == 6 :
                         CLASSIC_MODE.r_tools.remove(6)
                         if r_bullet_unknown is not None :
                             r_bullet_unknown = False
-                        print("当前的子弹为实弹" if CLASSIC_MODE.bullets[0] else \
-                              "当前的子弹为空弹")
+                        print("当前的子弹为实弹" \
+                              if CLASSIC_MODE.bullets[0] \
+                              else "当前的子弹为空弹")
             elif operation == 8 :
                 print("恶魔的道具库：")
                 for tool in CLASSIC_MODE.e_tools :
-                    print("道具", tool, "：", CLASSIC_MODE.tools[tool][0], sep="")
+                    print("道具", tool, "：", CLASSIC_MODE.tools[tool][0],
+                          sep="")
                     print("作用", CLASSIC_MODE.tools[tool][1], sep="：")
             elif operation == 1 :
                 round_turn_count += 1
@@ -250,8 +262,9 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
                     not randint(0, 1)
                     if will_use :
                         CLASSIC_MODE.e_tools.remove(3)
-                        print("恶魔排出了一颗实弹" if CLASSIC_MODE.bullets.pop(0) else \
-                              "恶魔排出了一颗空弹")
+                        print("恶魔排出了一颗实弹" \
+                              if CLASSIC_MODE.bullets.pop(0) \
+                              else "恶魔排出了一颗空弹")
                         if e_bullet_unknown is not None :
                             e_bullet_unknown = True
                 elif toolid == 2 :
@@ -279,7 +292,8 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
                             CLASSIC_MODE.e_hp += 1
                             print("恶魔使用了道德的崇高赞许，回复了一点生命")
                         else :
-                            print("因为恶魔的不诚实，恶魔并未回复生命，甚至失去了道德的崇高赞许")
+                            print("因为恶魔的不诚实，恶魔并未回复生命，"
+                                  "甚至失去了道德的崇高赞许")
                 elif toolid == 6 :
                     will_use = nightmare or not randint(0, 1)
                     if will_use :

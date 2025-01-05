@@ -65,8 +65,8 @@ Tells you whether it is true or false of the outermost bullet of each clip (the
 top message describes the main clip's).
 ##### Tool 7: Ná Lái Zhǔ Yì
 If the opposite has _n_(_n_∈**N**) non-OP tools, there is a probability of
-1/_n_ of gaining a non-OP tool equally likely, and a probability of 1-1/_n_ of
-fetching 1 non-OP tool from the opposite equally likely.  
+1/(_n_+1) of gaining a non-limited tool equally likely, and a probability of
+1-1/(_n_+1) of fetching 1 non-limited tool from the opposite equally likely.  
 The two are opposite events.
 ##### Tool 8: Nǐ De Jiù Shì Wǒ De
 This is an OP tool.  
@@ -97,17 +97,17 @@ Let _m_=randint(1,6)+randint(1,6)+randint(1,6). If _m_=3, you break care for 2
 rounds; if _m_=4, your HP will decrease by 2 and tell you so; if _m_=5, the
 true-false state of the bullets in the main clip changes randomly from the
 outside to the inside from the 3rd bullet; if _m_=6, your HP will decrease by 1
-and tell you so; if _m_=7, one of your non-OP tools disappears; if _m_=9, your
-stamina will increase by 1 until reaching the maximum; if _m_=10, your HP will
-increase by 1 and tell you so; if _m_=11, your stamina will increase by 2 until
-reaching the maximum; if _m_=12, your additional damage for the current turn
-will increase by 2, and there is a probability of 50% that you will be told so;
-if _m_=13, the opposite's HP will decrease by 1 and tell you so; if _m_=14, the
-opposite has a probability of 1/3 of being dazed for 1 more turn, and a
-probability of 2/3 of being dazed for 2 more turns, which are opposite events;
-if _m_=15, the opposite's HP will decrease by 2 and tell you so; if _m_=18, the
-opposite's HP will become 1/8th of what it was originally (floored), and tell
-you so.
+and tell you so; if _m_=7, one of your non-limited tools disappears; if _m_=9,
+your stamina will increase by 1 until reaching the maximum; if _m_=10, your HP
+will increase by 1 and tell you so; if _m_=11, your stamina will increase by 2
+until reaching the maximum; if _m_=12, your additional damage for the current
+turn will increase by 2, and there is a probability of 50% that you will be
+told so; if _m_=13, the opposite's HP will decrease by 1 and tell you so; if
+_m_=14, the opposite has a probability of 1/3 of being dazed for 1 more turn,
+and a probability of 2/3 of being dazed for 2 more turns, which are opposite
+events; if _m_=15, the opposite's HP will decrease by 2 and tell you so; if
+_m_=18, the opposite's HP will become 1/8th of what it was originally
+(floored), and tell you so.
 ##### Tool 12: Cáo Wèi Yán Qī
 Suppose you currently have _n_(_n_∈**N**) temporary slots. If _n_=0, this tool
 will not be used; if _n_>0, for each temporary slot, there is a 100%
@@ -167,7 +167,7 @@ _Not Implemented Yet_
 ##### Tool 20: Rán Shāo Dàn
 _Not Implemented Yet_
 ##### Tool 21: Pò Qiāng
-Increase the opposite's stacked badgun by 1。  
+Increase the opposite's stacked badgun by 1.  
 Suppose the current explosion exponent is _h_(_h_∈**N**), your stacked
 goodgun(foo) count is _m_(_m_∈**N**), your stacked goodgun(bar) count is
 _n_(_n_∈**N**), and your stacked badgun number is _r_(_r_∈**N**). If shooting
@@ -255,7 +255,7 @@ There are infinite periods.
 Your initial HP is 2. Suppose the current period is Period _n_(_n_∈**N₊**), the
 Evil's initial HP is (_n_+9).  
 All tools except ID10 will be sent.  
-Each side has 9 permanent slots.。
+Each side has 9 permanent slots.
 #### 6. Lián Shè Pài Duì
 Only 1 period.  
 Your and the Evil's initial HP respectively are 40 and 200.  
@@ -274,8 +274,8 @@ No tools will be sent.
 Each side has 0 permanent slots.  
 No temporary slot will be sent.
 ### Custom Game Mode
-Predefined game modes are in [emlpd.gameinst](emlpd/gameinst.py), defined by `GAMEMODE_SET`.
-This is the default setting of `GAMEMODE_SET`:
+Predefined game modes are in [emlpd.gameinst](emlpd/gameinst.py), defined by
+`GAMEMODE_SET`. This is the default setting of `GAMEMODE_SET`:
 
 ```python3
 from typing import Dict, Iterable, Optional, Tuple, Union
@@ -367,14 +367,18 @@ Input `9` for entering custom game mode.
 Python 3.6 or above is required.  
 type `python -m emlpd.classic` in the terminal.
 ### Game Rule Introduction
-你需要根据游戏界面给你的提示来打败恶魔。要打败恶魔，需要让恶魔的生命值变为 0
-或以下，且自己的生命值在 0 以上。  
-每一回合之初游戏都会告诉你实弹与空弹各有几发。每一轮，你可以选择朝自己开枪，
-也可以朝对方开枪。若朝自己开枪且射出的子弹为空弹，则下一轮还是你开枪，
-否则轮到对面开枪。  
-若射出了 1 发实弹，则它会造成 1 点的基础伤害。  
-如果某一方晕了 _n_(_n_∈**N₊**) 轮，那么若原本下一轮应轮到该方开枪，
-则下一轮变为仍是另一方开枪，且该方晕的轮数变为 _n_-1。
+You need to follow the hints given to you in the game interface to defeat Evil.
+To defeat the Evil, you need to make the Evil's HP 0 or less and your HP 0 or
+more.  
+At the beginning of each round, the game will tell you the counts of true and
+false bullets are in the clip. Each turn, you can choose to shoot at yourself
+or the opposite.  
+If you shoot at yourself and the bullet is a false bullet, you will shoot again
+in the next turn, otherwise the opposite will shoot.  
+If 1 true bullet is shot, it causes 1 point of base damage.  
+If a side have _n_(_n_∈**N₊**) dazing turns, then if it would have been this
+side to shoot in the next turn, then the opposite still shoots in the next turn
+and the number of this side's dazing turns becomes _n_-1.
 #### Game Cycles
 ##### Turn
 Shooting 1 time is called 1 turn.
@@ -383,15 +387,17 @@ Giving 1 new clips is called 1 round.
 ##### Game
 Game running 1 time is called 1 game.
 #### Tools' Descriptions
-##### Tool 2: 小刀
-若本轮使用了 _n_(_n_∈**N**) 个**小刀**，对本轮射出的实弹都附加 _n_
-点额外伤害。
-##### Tool 3: 开挂
-将弹夹的最外部的 1 发子弹退出（让其消失），并告诉这发子弹的实空。
-##### Tool 4: 超级小木锤
-让对方晕的轮数加 1。
-##### Tool 5: 道德的崇高赞许
-设当前你的生命值为 _m_(_m_∈**N₊**)，当 _m_≤3 时，你有 100% 的概率加 1 点生命值；当
-_m_>3 时，你有 pow(2,3-_m_) 的概率加 1 点生命值。
-##### Tool 6: 透视镜
-告诉你弹夹的最外部的 1 发子弹的实空。
+##### Tool 2: Xiǎo Dāo
+If _n_(_n_∈**N**) **Xiǎo Dāo**s is used this turn, attach _n_ points of
+additional damage for each true bullets shot this turn.
+##### Tool 3: Kāi Guà
+Let the outermost bullet of the clip quit(make it disappear), and tell you
+whether the bullet was true or false.
+##### Tool 4: Chāo Jí Xiǎo Mù Chuí
+Let the number of the opposite's dazing round increase by 1.
+##### Tool 5: Dào Dé De Chóng Gāo Zàn Xǔ
+Suppose your current HP is _m_(_m_∈**N₊**), if _m_≤3, there is a probability of
+100% that your HP will increase by 1; if _m_>3, there is a probability of
+pow(2,3-_m_) that your HP will increase by 1.
+##### Tool 6: Tòu Shì Jìng
+Tells you whether it is true or false of the outermost bullet of the clip.

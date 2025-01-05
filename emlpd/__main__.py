@@ -855,9 +855,9 @@ while 1 :
                             chosen_game.r_slots[tools_existence[28]] = \
                             (chosen_game.r_slots[tools_existence[28]][0], None)
                             while chosen_game.bullets :
-                                print("你排出了一颗实弹" if \
-                                      chosen_game.bullets.pop(0) else \
-                                      "你排出了一颗空弹")
+                                print("你排出了一颗实弹" \
+                                      if chosen_game.bullets.pop(0) \
+                                      else "你排出了一颗空弹")
                         elif to_use == 29 :
                             chosen_game.r_slots[tools_existence[29]] = \
                             (chosen_game.r_slots[tools_existence[29]][0], None)
@@ -1262,10 +1262,9 @@ while 1 :
                     not randint(0, 1)
                     if will_use :
                         chosen_game.e_slots[slotid] = (slot[0], None)
-                        if chosen_game.bullets.pop(0) :
-                            print("恶魔排出了一颗实弹")
-                        else:
-                            print("恶魔排出了一颗空弹")
+                        print("恶魔排出了一颗实弹" \
+                              if chosen_game.bullets.pop(0) \
+                              else "恶魔排出了一颗空弹")
                         if not chosen_game.bullets :
                             break
                 elif slot[1] == 2 :
