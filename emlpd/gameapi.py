@@ -7,7 +7,7 @@ __all__ = ["VER", "VER_STRING", "Slot", "ShootResult", "ShootResultAnalyzer",
            "Game", "GameSave"]
 
 VER: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]] = \
-(0, 4, 1)
+(0, 4, 2, "a", 1)
 
 VER_STRING: str = \
 ("{0}.{1}.{2}-{3}{4}" if len(VER) > 4 else "{0}.{1}.{2}").format(*VER)
@@ -45,6 +45,7 @@ class Game :
     extra_bullets: Tuple[Optional[List[bool]], Optional[List[bool]],
                          Optional[List[bool]]]
     slot_sending_weight: Dict[int, Union[int, Callable[["Game"], int]]]
+    subgame: Optional["Game"]
 
     def __init__(
         self, min_bullets: int, max_bullets: int, min_true_bullets: int,
@@ -98,6 +99,7 @@ class Game :
         self.slot_sending_weight = {1: 5, 2: 6, 3: 6, 4: 2, 5: 1} \
                                    if slot_sending_weight is None \
                                    else slot_sending_weight.copy()
+        self.subgame = None
 
     def gen_bullets(self, bullets_id: Optional[int] = None) -> \
         Optional[List[bool]] :

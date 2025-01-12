@@ -1,3 +1,4 @@
+from datetime import date
 from math import atan, log
 from random import randint, random
 from sys import argv
@@ -19,6 +20,10 @@ debug: bool = "debug" in argv[1:]
 nightmare: bool = "nightmare" in argv[1:]
 show_pp: bool = "show_pp" in argv[1:]
 skipthread: bool = "skipthread" in argv[1:]
+cat_girl: str = chr(
+    32848+3365*(-1)**((date.today().month<<5)|date.today().day!=129)
+) + chr(29888+6824*(-1)**((date.today().month<<5)|date.today().day!=129)+
+        ((date.today().month<<5)|date.today().day==129))
 
 try :
     with open("emlpd.dat", "rb") as gamesave_file :
@@ -103,7 +108,7 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
            (CLASSIC_MODE.e_hp <= 0 and CLASSIC_MODE.yourturn) :
             break
         if CLASSIC_MODE.rel_turn_lap < 0 :
-            print("感觉...头晕晕的...要变成猫娘了~")
+            print("感觉...头晕晕的...要变成{0}了~".format(cat_girl))
         elif CLASSIC_MODE.rel_turn_lap :
             print("哈哈哈哈，恶魔被敲晕了，还是我的回合！")
         gamesave.active_gametime += time() - gametime_time_start
@@ -279,7 +284,7 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
                     if will_use :
                         CLASSIC_MODE.e_tools.remove(4)
                         CLASSIC_MODE.rel_turn_lap -= 1
-                        print("恭喜恶魔，成功把你变成了猫娘！")
+                        print("恭喜恶魔，成功把你变成了{0}！".format(cat_girl))
                 elif toolid == 5 :
                     will_use = nightmare or not randint(0, 1)
                     if will_use :
@@ -360,7 +365,7 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
 if CLASSIC_MODE.r_hp > 0 :
     gamesave.add_coins()
     if CLASSIC_MODE.e_hp == 0 :
-        print("恭喜你，成功把恶魔变成了猫娘！")
+        print("恭喜你，成功把恶魔变成了{0}！".format(cat_girl))
     elif CLASSIC_MODE.e_hp == -1 :
         print("恭喜你，成功把恶魔打得体无完肤！")
     elif CLASSIC_MODE.e_hp == -2 :
@@ -369,7 +374,7 @@ if CLASSIC_MODE.r_hp > 0 :
         print("恭喜你，成功让恶魔原地消失！")
 elif CLASSIC_MODE.r_hp == 0 :
     if CLASSIC_MODE.e_hp > 0 :
-        print("唉....你被恶魔变成了猫娘")
+        print("唉....你被恶魔变成了{0}".format(cat_girl))
     elif CLASSIC_MODE.e_hp == 0 :
         print("你们最后同归于尽了")
         gamesave.add_exp(25)
@@ -379,11 +384,11 @@ elif CLASSIC_MODE.r_hp == 0 :
         gamesave.add_exp(80)
         gamesave.add_coins(3)
     elif CLASSIC_MODE.e_hp == -2 :
-        print("恶魔为你化作灰烬，而你成为了猫娘")
+        print("恶魔为你化作灰烬，而你成为了{0}".format(cat_girl))
         gamesave.add_exp(400)
         gamesave.add_coins(10)
     else :
-        print("你作为猫娘看着恶魔消失于世上")
+        print("你作为{0}看着恶魔消失于世上".format(cat_girl))
         gamesave.add_exp(1500)
         gamesave.add_coins(32)
 elif CLASSIC_MODE.r_hp == -1 :
@@ -409,7 +414,7 @@ elif CLASSIC_MODE.r_hp == -2 :
     if CLASSIC_MODE.e_hp > 0 :
         print("唉....你被恶魔化作一团灰烬")
     elif CLASSIC_MODE.e_hp == 0 :
-        print("你为恶魔化作灰烬，而它成为了猫娘")
+        print("你为恶魔化作灰烬，而它成为了{0}".format(cat_girl))
         gamesave.add_exp(400)
         gamesave.add_coins(10)
     elif CLASSIC_MODE.e_hp == -1 :
@@ -428,7 +433,7 @@ else :
     if CLASSIC_MODE.e_hp > 0 :
         print("唉....恶魔让你人间蒸发了")
     elif CLASSIC_MODE.e_hp == 0 :
-        print("恶魔作为猫娘看着你消失于世上")
+        print("恶魔作为{0}看着你消失于世上".format(cat_girl))
         gamesave.add_exp(1500)
         gamesave.add_coins(32)
     elif CLASSIC_MODE.e_hp == -1 :

@@ -1,3 +1,4 @@
+from datetime import date
 from fractions import Fraction
 from math import ceil
 from random import choice, randint, random, shuffle
@@ -6,7 +7,7 @@ from time import sleep, time
 from typing import Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING
 
 from .gameapi import Game, GameSave, ShootResult, VER_STRING
-from .gameinst import GAMEMODE_SET, NormalGame
+from .gameinst import GAMEMODE_SET, NormalGame, StageGame
 
 gamesave: GameSave = GameSave()
 gamemode_i: int = 1
@@ -15,6 +16,10 @@ print("恶魔轮盘赌（重构版） v"+VER_STRING)
 debug: bool = "debug" in argv[1:]
 nightmare: bool = "nightmare" in argv[1:]
 skipthread: bool = "skipthread" in argv[1:]
+cat_girl: str = chr(
+    32848+3365*(-1)**((date.today().month<<5)|date.today().day!=129)
+) + chr(29888+6824*(-1)**((date.today().month<<5)|date.today().day!=129)+
+        ((date.today().month<<5)|date.today().day==129))
 
 try :
     with open("emlpd.dat", "rb") as gamesave_file :
@@ -76,6 +81,12 @@ IDENTITIES: Dict[int, Tuple[str, str, int]] = {
 }
 
 chosen_games: Iterator[Game] = iter(GAMEMODE_SET[gamemode_i][0])
+parent_game_store: Optional[Tuple[
+    int, # r_hurts
+    int, # e_hurts
+    int, # r_stamina
+    int  # e_stamina
+]] = None
 r_hurts: int = 0
 e_hurts: int = 0
 r_stamina: int = 32
@@ -111,7 +122,9 @@ bullets_upgrade: int = 0
 true_on_r: bool = False
 true_on_e: bool = False
 
-chosen_game: Game = next(chosen_games)
+parent_game: Game = next(chosen_games)
+sub_game: Optional[Game] = parent_game.subgame
+chosen_game: Game = parent_game if sub_game is None else sub_game
 
 round_turn_count: int = 0
 period_turn_count: int = 0
@@ -123,65 +136,81 @@ total_period_count: int = 1
 while 1 :
     gametime_time_start: float = time()
     if chosen_game.r_hp <= 0 or chosen_game.e_hp <= 0 :
-        try :
-            if chosen_game.r_hp <= 0 :
-                r_hurts = 0
-                r_selfshoot_promises = 0
-                r_breakcare_potential = 0
-                r_breakcare_rounds = 0
-                r_stamina = 32
-                r_againstshoot_promises = 0
-                r_bulletproof.clear()
-                r_bullet_catcher_level = 0
-                r_multishoot_level = 0
-                r_comboshoot_level = 0
-                r_cursed_shoot_level = 0
-                r_0band_level = 0
-                r_1band_level = 0
-            else :
-                r_stamina += (32-r_stamina) // 2
-            if chosen_game.e_hp <= 0 :
-                e_hurts = 0
-                e_selfshoot_promises = 0
-                e_breakcare_potential = 0
-                e_breakcare_rounds = 0
-                e_stamina = 32
-                e_againstshoot_promises = 0
-                e_bulletproof.clear()
-                e_bullet_catcher_level = 0
-                e_multishoot_level = 0
-                e_comboshoot_level = 0
-                e_cursed_shoot_level = 0
-                e_0band_level = 0
-                e_1band_level = 0
-            else :
-                e_stamina += (32-e_stamina) // 2
-            if chosen_game.e_hp <= 0 :
-                if nightmare :
-                    gamesave.add_exp(ceil(10*(2-chosen_game.e_hp)*\
-                                          GAMEMODE_SET[gamemode_i][2]))
-                elif not debug :
-                    gamesave.add_exp(10*(2-chosen_game.e_hp))
-                if not debug :
-                    gamesave.add_coins()
-            chosen_game = next(chosen_games)
+        if chosen_game is sub_game :
+            if isinstance(sub_game, StageGame) :
+                if sub_game.r_hp <= 0 :
+                    print("很遗憾,恶魔赢得了擂台战")
+                    parent_game.e_hp += sub_game.tot_hp
+                elif sub_game.e_hp <= 0 :
+                    print("恭喜你,你赢得了擂台战!")
+                    parent_game.r_hp += sub_game.tot_hp
+                if parent_game_store is not None :
+                    r_hurts, e_hurts, r_stamina, e_stamina = parent_game_store
+                    parent_game_store = None
+            parent_game.subgame = None
+            chosen_game = parent_game
+        else :
             try :
-                with open("emlpd.dat", "wb") as gamesave_file :
-                    gamesave_file.write(gamesave.serialize())
-            except OSError as err :
-                print("存档时遇到问题!", err)
-            total_period_count += 1
-            gamesave.play_periods += 1
-            print("================")
-            print("本周目持续了", period_turn_count, "轮,")
-            print(period_round_count, "回合,")
-            round_turn_count = 0
-            period_turn_count = 0
-            period_round_count = 0
-            base_attack = 1
-            print("=== 第", total_period_count, "周目 ===")
-        except StopIteration :
-            break
+                if chosen_game.r_hp <= 0 :
+                    r_hurts = 0
+                    r_selfshoot_promises = 0
+                    r_breakcare_potential = 0
+                    r_breakcare_rounds = 0
+                    r_stamina = 32
+                    r_againstshoot_promises = 0
+                    r_bulletproof.clear()
+                    r_bullet_catcher_level = 0
+                    r_multishoot_level = 0
+                    r_comboshoot_level = 0
+                    r_cursed_shoot_level = 0
+                    r_0band_level = 0
+                    r_1band_level = 0
+                else :
+                    r_stamina += (32-r_stamina) // 2
+                if chosen_game.e_hp <= 0 :
+                    e_hurts = 0
+                    e_selfshoot_promises = 0
+                    e_breakcare_potential = 0
+                    e_breakcare_rounds = 0
+                    e_stamina = 32
+                    e_againstshoot_promises = 0
+                    e_bulletproof.clear()
+                    e_bullet_catcher_level = 0
+                    e_multishoot_level = 0
+                    e_comboshoot_level = 0
+                    e_cursed_shoot_level = 0
+                    e_0band_level = 0
+                    e_1band_level = 0
+                else :
+                    e_stamina += (32-e_stamina) // 2
+                if chosen_game.e_hp <= 0 :
+                    if nightmare :
+                        gamesave.add_exp(ceil(10*(2-chosen_game.e_hp)*\
+                                              GAMEMODE_SET[gamemode_i][2]))
+                    elif not debug :
+                        gamesave.add_exp(10*(2-chosen_game.e_hp))
+                    if not debug :
+                        gamesave.add_coins()
+                parent_game = next(chosen_games)
+                sub_game = parent_game.subgame
+                chosen_game = parent_game if sub_game is None else sub_game
+                try :
+                    with open("emlpd.dat", "wb") as gamesave_file :
+                        gamesave_file.write(gamesave.serialize())
+                except OSError as err :
+                    print("存档时遇到问题!", err)
+                total_period_count += 1
+                gamesave.play_periods += 1
+                print("================")
+                print("本周目持续了", period_turn_count, "轮,")
+                print(period_round_count, "回合,")
+                round_turn_count = 0
+                period_turn_count = 0
+                period_round_count = 0
+                base_attack = 1
+                print("=== 第", total_period_count, "周目 ===")
+            except StopIteration :
+                break
     round_turn_count = 0
     period_round_count += 1
     total_round_count += 1
@@ -206,20 +235,21 @@ while 1 :
             else :
                 chosen_game.e_slots = chosen_game.slots_sharing[2]
             chosen_game.slots_sharing = None
-    while r_1band_level > 0 and r_hurts > 0 :
-        r_hurts -= 1
-        r_1band_level -= 1
-    r_1band_level += r_0band_level
-    r_0band_level = 0
-    while e_1band_level > 0 and e_hurts > 0 :
-        e_hurts -= 1
-        e_1band_level -= 1
-    e_1band_level += e_0band_level
-    e_0band_level = 0
-    if r_breakcare_rounds > 0 :
-        r_breakcare_rounds -= 1
-    if e_breakcare_rounds > 0 :
-        e_breakcare_rounds -= 1
+    if not isinstance(chosen_game, StageGame) :
+        while r_1band_level > 0 and r_hurts > 0 :
+            r_hurts -= 1
+            r_1band_level -= 1
+        r_1band_level += r_0band_level
+        r_0band_level = 0
+        while e_1band_level > 0 and e_hurts > 0 :
+            e_hurts -= 1
+            e_1band_level -= 1
+        e_1band_level += e_0band_level
+        e_0band_level = 0
+        if r_breakcare_rounds > 0 :
+            r_breakcare_rounds -= 1
+        if e_breakcare_rounds > 0 :
+            e_breakcare_rounds -= 1
     print("当前你的生命值为:", chosen_game.r_hp)
     print("当前你的负伤数为:", r_hurts)
     print("当前恶魔生命值为:", chosen_game.e_hp)
@@ -290,7 +320,7 @@ while 1 :
         if chosen_game.r_hp <= 0 or chosen_game.e_hp <= 0 :
             break
         if chosen_game.rel_turn_lap < 0 :
-            print("感觉...头晕晕的...要变成猫娘了~")
+            print("感觉...头晕晕的...要变成{0}了~".format(cat_girl))
         elif chosen_game.rel_turn_lap :
             print("哈哈哈哈,恶魔被敲晕了,还是我的回合!")
         gamesave.active_gametime += time() - gametime_time_start
@@ -347,7 +377,8 @@ while 1 :
                 if isinstance(chosen_game, NormalGame) :
                     print("当前炸膛指数:", chosen_game.explosion_exponent)
             operation: int = 2
-            if r_breakcare_rounds > 0 :
+            if not isinstance(chosen_game, StageGame) and \
+               r_breakcare_rounds > 0 :
                 operation = randint(0, 1)
             else :
                 print("本轮由你操作")
@@ -405,7 +436,7 @@ while 1 :
                     print("返回请直接按回车")
                     to_use: Optional[int] = None
                     try:
-                        to_use = int(input("使用道具请按它的对应编号:"))
+                        to_use = int(input("使用道具请输入它的对应编号:"))
                     except ValueError:
                         break
                     if to_use in tools_existence :
@@ -729,27 +760,45 @@ while 1 :
                             (chosen_game.r_slots[tools_existence[21]][0], None)
                             e_cursed_shoot_level += 1
                         elif to_use == 22 :
-                            try :
-                                bullet_i_to_pick: int = \
-                                int(input("请输入要取出子弹的编号"
-                                          "(0~{0},0为当前子弹,输入其它以取消):"
-                                          .format(len(chosen_game.bullets)-1)))
-                                if 0 <= bullet_i_to_pick < \
-                                    len(chosen_game.bullets) :
+                            if len(chosen_game.bullets) == 1 :
+                                if input(
+                                    "弹夹内只有1发子弹,将其取出会即刻进入下一"
+                                    "回合,是否将其取出?(y/[N])"
+                                ).strip().lower() in ("y", "0") :
                                     chosen_game.r_slots[tools_existence[22]] =\
                                     (chosen_game.r_slots[tools_existence[22]][
                                         0
-                                    ], 24 if \
-                                    chosen_game.bullets.pop(bullet_i_to_pick) \
-                                    else 23)
+                                    ],24 if chosen_game.bullets.pop(0) else 23)
                                     print("你取出了一颗子弹")
                                     print("+1 道具", chosen_game.r_slots[
                                         tools_existence[22]
                                     ][1])
                                 else :
                                     used = False
-                            except ValueError :
-                                used = False
+                            else :
+                                try :
+                                    bullet_i_to_pick: int = int(input(
+                                        "请输入要取出子弹的编号"
+                                        "(0~{0},0为当前子弹,输入其它以取消):"
+                                        .format(len(chosen_game.bullets)-1)
+                                    ))
+                                    if 0 <= bullet_i_to_pick < \
+                                       len(chosen_game.bullets) :
+                                        chosen_game.r_slots[tools_existence[
+                                            22
+                                        ]] = (chosen_game.r_slots[
+                                            tools_existence[22]
+                                        ][0], 24 if chosen_game.bullets.pop(
+                                            bullet_i_to_pick
+                                        ) else 23)
+                                        print("你取出了一颗子弹")
+                                        print("+1 道具", chosen_game.r_slots[
+                                            tools_existence[22]
+                                        ][1])
+                                    else :
+                                        used = False
+                                except ValueError :
+                                    used = False
                         elif to_use == 23 :
                             try :
                                 bullet_i_to_ins: int = \
@@ -800,8 +849,9 @@ while 1 :
                                     (chosen_game.r_slots[tools_existence[25]][
                                         0
                                     ], None)
-                                    chosen_game.bullets.insert(bullet_i_to_ins,
-                                                               not randint(0, 1))
+                                    chosen_game.bullets.insert(
+                                        bullet_i_to_ins, not randint(0, 1)
+                                    )
                                     if bullet_i_to_ins < \
                                        len(chosen_game.bullets) - 1 :
                                         chosen_game.bullets[
@@ -884,6 +934,71 @@ while 1 :
                             chosen_game.rel_turn_lap += \
                             len(chosen_game.bullets)
                             print("恭喜你,成功敲晕了对方!")
+                        elif to_use == 32 :
+                            if chosen_game.r_hp == 1 :
+                                if "y" == input(
+                                    "你只有1生命值,是否要发起擂台战?(y/[N])"
+                                ).strip().lower() :
+                                    chosen_game.r_slots[tools_existence[32]] =\
+                                    (chosen_game.r_slots[tools_existence[32]][
+                                        0
+                                    ], None)
+                                    evil_hp: int = randint(1, chosen_game.e_hp)
+                                    print("恶魔以", evil_hp, "生命值应战")
+                                    parent_game_store = (
+                                        r_hurts, e_hurts, r_stamina, e_stamina
+                                    )
+                                    r_hurts = e_hurts = 0
+                                    r_stamina = e_stamina = 32
+                                    chosen_game.r_hp -= 1
+                                    chosen_game.e_hp -= evil_hp
+                                    parent_game.subgame = StageGame(
+                                        1, evil_hp, True
+                                    )
+                                    sub_game = parent_game.subgame
+                                    chosen_game = \
+                                    parent_game if sub_game is None \
+                                    else sub_game
+                                    if isinstance(sub_game, StageGame) :
+                                        sub_game.gen_bullets()
+                                else :
+                                    used = False
+                            else :
+                                try :
+                                    your_hp: int = \
+                                    int(input("请输入你要作为赌注的生命值"
+                                              "(1~{0},输入其它以取消):"
+                                              .format(chosen_game.r_hp)))
+                                    if 0 < your_hp <= chosen_game.r_hp :
+                                        chosen_game.r_slots[tools_existence[
+                                            32
+                                        ]] = (chosen_game.r_slots[
+                                            tools_existence[32]
+                                        ][0], None)
+                                        evil_hp: int = \
+                                        randint(1, chosen_game.e_hp)
+                                        print("恶魔以", evil_hp, "生命值应战")
+                                        parent_game_store = (
+                                            r_hurts, e_hurts, r_stamina,
+                                            e_stamina
+                                        )
+                                        r_hurts = e_hurts = 0
+                                        r_stamina = e_stamina = 32
+                                        chosen_game.r_hp -= your_hp
+                                        chosen_game.e_hp -= evil_hp
+                                        parent_game.subgame = StageGame(
+                                            your_hp, evil_hp, True
+                                        )
+                                        sub_game = parent_game.subgame
+                                        chosen_game = \
+                                        parent_game if sub_game is None \
+                                        else sub_game
+                                        if isinstance(sub_game, StageGame) :
+                                            sub_game.gen_bullets()
+                                    else :
+                                        used = False
+                                except ValueError :
+                                    used = False
                         elif to_use == 33 :
                             if isinstance(chosen_game, NormalGame) and \
                                chosen_game.explosion_exponent > 0 :
@@ -960,19 +1075,21 @@ while 1 :
                 true_on_r = False
                 true_on_e = False
                 shoot_combo_addition = 0
-                comboshoot_consume_num = 0
-                while shoot_combo_addition < len(chosen_game.bullets) :
-                    comboshoot_consume_num += 1
-                    if random() >= 0.5 ** r_comboshoot_level :
-                        shoot_combo_addition += 1
-                    else :
-                        break
-                if shoot_combo_addition == len(chosen_game.bullets) :
-                    chosen_game.rel_turn_lap += 1
-                r_comboshoot_level -= comboshoot_consume_num
-                if r_comboshoot_level < 0 :
-                    r_comboshoot_level = 0
-                if r_cursed_shoot_level > 0 :
+                if not isinstance(chosen_game, StageGame) :
+                    comboshoot_consume_num = 0
+                    while shoot_combo_addition < len(chosen_game.bullets) :
+                        comboshoot_consume_num += 1
+                        if random() >= 0.5 ** r_comboshoot_level :
+                            shoot_combo_addition += 1
+                        else :
+                            break
+                    if shoot_combo_addition == len(chosen_game.bullets) :
+                        chosen_game.rel_turn_lap += 1
+                    r_comboshoot_level -= comboshoot_consume_num
+                    if r_comboshoot_level < 0 :
+                        r_comboshoot_level = 0
+                if not isinstance(chosen_game, StageGame) and \
+                   r_cursed_shoot_level > 0 :
                     shoots_result = chosen_game.shoots(
                         False, True, 1.,
                         shoot_combo_addition+r_multishoot_level+1 \
@@ -981,7 +1098,8 @@ while 1 :
                         else len(chosen_game.bullets)
                     )
                     r_cursed_shoot_level -= 1
-                elif r_againstshoot_promises > 0 :
+                elif not isinstance(chosen_game, StageGame) and \
+                     r_againstshoot_promises > 0 :
                     shoots_result = chosen_game.shoots(
                         False, True, 0.,
                         shoot_combo_addition+r_multishoot_level+1 \
@@ -993,10 +1111,12 @@ while 1 :
                 else :
                     shoots_result = chosen_game.shoots(
                         False, True,
-                        combo=shoot_combo_addition+r_multishoot_level+1 \
-                        if shoot_combo_addition+r_multishoot_level<\
-                           len(chosen_game.bullets) \
-                        else len(chosen_game.bullets)
+                        combo=1 if isinstance(chosen_game, StageGame) else (
+                            shoot_combo_addition+r_multishoot_level+1
+                            if shoot_combo_addition+r_multishoot_level<
+                               len(chosen_game.bullets)
+                            else len(chosen_game.bullets)
+                        )
                     )
                 base_shoot = True
                 for shoot_result in shoots_result :
@@ -1053,7 +1173,8 @@ while 1 :
                                     gamesave.success_againstshoot_trues += 1
                                 else :
                                     gamesave.success_againstshoot_falses += 1
-                                if e_bullet_catcher_level :
+                                if not isinstance(chosen_game, StageGame) and \
+                                   e_bullet_catcher_level :
                                     if bullets_i[0] :
                                         if random() < \
                                            (1-0.8**e_bullet_catcher_level) / \
@@ -1072,7 +1193,8 @@ while 1 :
                                                 e_stamina -= 1
                                             print("恶魔接住了一颗子弹")
                                             continue
-                                if e_bulletproof :
+                                if not isinstance(chosen_game, StageGame) and \
+                                   e_bulletproof :
                                     e_bulletproof[0] -= \
                                     randint(1, ceil((r_attack_boost+1)**0.5))
                                     print("恶魔的防弹衣承受了这次撞击")
@@ -1131,10 +1253,12 @@ while 1 :
                 true_on_e = False
                 if r_stamina > 0 :
                     r_stamina -= 1
-                if r_cursed_shoot_level > 0 :
+                if not isinstance(chosen_game, StageGame) and \
+                   r_cursed_shoot_level > 0 :
                     shoot_result = chosen_game.shoot(True, True, 1.)
                     r_cursed_shoot_level -= 1
-                elif r_selfshoot_promises :
+                elif not isinstance(chosen_game, StageGame) and \
+                     r_selfshoot_promises :
                     shoot_result = chosen_game.shoot(True, True, 0.)
                     r_selfshoot_promises -= 1
                 else :
@@ -1147,7 +1271,8 @@ while 1 :
                             else :
                                 gamesave.exploded_selfshoot_falses += 1
                             print("哦嘿,子弹居然炸膛了!")
-                            if e_bullet_catcher_level :
+                            if not isinstance(chosen_game, StageGame) and \
+                               e_bullet_catcher_level :
                                 if bullets_i[0] :
                                     if random() < \
                                        (1-0.8**e_bullet_catcher_level) / \
@@ -1166,7 +1291,8 @@ while 1 :
                                             e_stamina -= 1
                                         print("恶魔接住了一颗子弹")
                                         continue
-                            if e_bulletproof :
+                            if not isinstance(chosen_game, StageGame) and \
+                               e_bulletproof :
                                 e_bulletproof[0] -= \
                                 randint(1, ceil((r_attack_boost+1)**0.5))
                                 print("恶魔的防弹衣承受了这次撞击")
@@ -1279,7 +1405,7 @@ while 1 :
                     if will_use :
                         chosen_game.e_slots[slotid] = (slot[0], None)
                         chosen_game.rel_turn_lap -= 1
-                        print("恭喜恶魔,成功把你变成了猫娘!")
+                        print("恭喜恶魔,成功把你变成了{0}!".format(cat_girl))
                 elif slot[1] == 5 :
                     will_use = nightmare or not randint(0, 1)
                     if will_use :
@@ -1621,7 +1747,56 @@ while 1 :
                     if will_use :
                         chosen_game.e_slots[slotid] = (slot[0], None)
                         chosen_game.rel_turn_lap -= len(chosen_game.bullets)
-                        print("恭喜恶魔,成功把你变成了猫娘!")
+                        print("恭喜恶魔,成功把你变成了{0}!".format(cat_girl))
+                elif slot[1] == 32 :
+                    will_use = not randint(0, 9)
+                    if will_use :
+                        evil_hp: int = randint(1, chosen_game.e_hp)
+                        print("恶魔以", evil_hp, "生命值向你发起了擂台战")
+                        if chosen_game.r_hp == 1 :
+                            print("你以仅有的 1 生命值应战")
+                            parent_game_store = (
+                                r_hurts, e_hurts, r_stamina, e_stamina
+                            )
+                            r_hurts = e_hurts = 0
+                            r_stamina = e_stamina = 32
+                            chosen_game.r_hp -= 1
+                            chosen_game.e_hp -= evil_hp
+                            parent_game.subgame = StageGame(1, evil_hp, False)
+                            sub_game = parent_game.subgame
+                            chosen_game = \
+                            parent_game if sub_game is None else sub_game
+                            if isinstance(sub_game, StageGame) :
+                                sub_game.gen_bullets()
+                        else :
+                            while True :
+                                try :
+                                    your_hp: int = int(input(
+                                        "请输入你要作为赌注的生命值(1~{0}):"
+                                        .format(chosen_game.r_hp)
+                                    ))
+                                    if 0 < your_hp <= chosen_game.r_hp :
+                                        parent_game_store = (
+                                            r_hurts, e_hurts, r_stamina,
+                                            e_stamina
+                                        )
+                                        r_hurts = e_hurts = 0
+                                        r_stamina = e_stamina = 32
+                                        chosen_game.r_hp -= your_hp
+                                        chosen_game.e_hp -= evil_hp
+                                        parent_game.subgame = StageGame(
+                                            your_hp, evil_hp, False
+                                        )
+                                        sub_game = parent_game.subgame
+                                        chosen_game = \
+                                        parent_game if sub_game is None \
+                                        else sub_game
+                                        if isinstance(sub_game, StageGame) :
+                                            sub_game.gen_bullets()
+                                        break
+                                except ValueError :
+                                    pass
+                        break
                 elif slot[1] == 33 :
                     will_use = nightmare or not randint(0, 4)
                     if will_use and isinstance(chosen_game, NormalGame) and \
@@ -1642,14 +1817,17 @@ while 1 :
             if e_stamina > 0 :
                 e_stamina -= 1
             is_to_self: bool = ((not e_cursed_shoot_level) !=
-                                chosen_game.bullets[0]) if \
-                               nightmare and e_breakcare_rounds <= 0 else \
-                               not randint(0, 1)
+                                chosen_game.bullets[0]) if nightmare and (
+                                    isinstance(chosen_game, StageGame) or
+                                    e_breakcare_rounds <= 0
+                                ) else not randint(0, 1)
             if is_to_self :
-                if e_cursed_shoot_level > 0 :
+                if not isinstance(chosen_game, StageGame) and \
+                   e_cursed_shoot_level > 0 :
                     shoot_result = chosen_game.shoot(True, False, 1.)
                     e_cursed_shoot_level -= 1
-                elif e_selfshoot_promises > 0 :
+                elif not isinstance(chosen_game, StageGame) and \
+                     e_selfshoot_promises > 0 :
                     shoot_result = chosen_game.shoot(True, False, 0.)
                     e_selfshoot_promises -= 1
                 else :
@@ -1659,7 +1837,8 @@ while 1 :
                     if bullets_i is not None :
                         if bullets_i[1] :
                             print("啊哦,子弹居然炸膛了!")
-                            if r_bullet_catcher_level :
+                            if not isinstance(chosen_game, StageGame) and \
+                               r_bullet_catcher_level :
                                 if bullets_i[0] :
                                     if random() < \
                                        (1-0.8**r_bullet_catcher_level) / \
@@ -1680,7 +1859,8 @@ while 1 :
                                             r_stamina -= 1
                                         print("你接住了一颗子弹")
                                         continue
-                            if r_bulletproof :
+                            if not isinstance(chosen_game, StageGame) and \
+                               r_bulletproof :
                                 r_bulletproof[0] -= \
                                 randint(1, ceil((e_attack_boost+1)**0.5))
                                 print("你的防弹衣承受了这次撞击")
@@ -1726,19 +1906,21 @@ while 1 :
                                 print("“啊哈!,是个空弹!”恶魔嘲讽道")
             else :
                 shoot_combo_addition = 0
-                comboshoot_consume_num = 0
-                while shoot_combo_addition < len(chosen_game.bullets) :
-                    comboshoot_consume_num += 1
-                    if random() >= 0.5 ** e_comboshoot_level :
-                        shoot_combo_addition += 1
-                    else :
-                        break
-                if shoot_combo_addition == len(chosen_game.bullets) :
-                    chosen_game.rel_turn_lap -= 1
-                e_comboshoot_level -= comboshoot_consume_num
-                if e_comboshoot_level < 0 :
-                    e_comboshoot_level = 0
-                if e_cursed_shoot_level > 0 :
+                if not isinstance(chosen_game, StageGame) :
+                    comboshoot_consume_num = 0
+                    while shoot_combo_addition < len(chosen_game.bullets) :
+                        comboshoot_consume_num += 1
+                        if random() >= 0.5 ** e_comboshoot_level :
+                            shoot_combo_addition += 1
+                        else :
+                            break
+                    if shoot_combo_addition == len(chosen_game.bullets) :
+                        chosen_game.rel_turn_lap -= 1
+                    e_comboshoot_level -= comboshoot_consume_num
+                    if e_comboshoot_level < 0 :
+                        e_comboshoot_level = 0
+                if not isinstance(chosen_game, StageGame) and \
+                   e_cursed_shoot_level > 0 :
                     shoots_result = chosen_game.shoots(
                         False, False, 1.,
                         shoot_combo_addition+e_multishoot_level+1 \
@@ -1747,23 +1929,28 @@ while 1 :
                         else len(chosen_game.bullets)
                     )
                     e_cursed_shoot_level -= 1
-                elif e_againstshoot_promises > 0 or nightmare :
+                elif (not isinstance(chosen_game, StageGame) and
+                      e_againstshoot_promises > 0) or nightmare :
                     shoots_result = chosen_game.shoots(
                         False, False, 0.,
-                        shoot_combo_addition+e_multishoot_level+1 \
-                        if shoot_combo_addition+e_multishoot_level<\
-                           len(chosen_game.bullets) \
-                        else len(chosen_game.bullets)
+                        1 if isinstance(chosen_game, StageGame) else (
+                            shoot_combo_addition+e_multishoot_level+1
+                            if shoot_combo_addition+e_multishoot_level<
+                               len(chosen_game.bullets)
+                            else len(chosen_game.bullets)
+                        )
                     )
                     if e_againstshoot_promises :
                         e_againstshoot_promises -= 1
                 else :
                     shoots_result = chosen_game.shoots(
                         False, False,
-                        combo=shoot_combo_addition+e_multishoot_level+1 \
-                        if shoot_combo_addition+e_multishoot_level<\
-                           len(chosen_game.bullets) \
-                        else len(chosen_game.bullets)
+                        combo=1 if isinstance(chosen_game, StageGame) else (
+                            shoot_combo_addition+e_multishoot_level+1
+                            if shoot_combo_addition+e_multishoot_level<
+                               len(chosen_game.bullets)
+                            else len(chosen_game.bullets)
+                        )
                     )
                 base_shoot = True
                 print("恶魔朝你开了一枪")
@@ -1792,7 +1979,8 @@ while 1 :
                                 else :
                                     print("“啊哈!,是个空弹!”恶魔嘲讽道")
                             else :
-                                if r_bullet_catcher_level :
+                                if not isinstance(chosen_game, StageGame) and \
+                                   r_bullet_catcher_level :
                                     if bullets_i[0] :
                                         if random() < \
                                            (1-0.8**r_bullet_catcher_level) / \
@@ -1813,7 +2001,8 @@ while 1 :
                                                 r_stamina -= 1
                                             print("你接住了一颗子弹")
                                             continue
-                                if r_bulletproof :
+                                if not isinstance(chosen_game, StageGame) and \
+                                   r_bulletproof :
                                     r_bulletproof[0] -= \
                                     randint(1, ceil((e_attack_boost+1)**0.5))
                                     print("你的防弹衣承受了这次撞击")
@@ -1861,7 +2050,7 @@ while 1 :
 
 if chosen_game.r_hp > 0 :
     if chosen_game.e_hp == 0 :
-        print("恭喜你，成功把恶魔变成了猫娘！")
+        print("恭喜你，成功把恶魔变成了{0}！".format(cat_girl))
     elif chosen_game.e_hp == -1 :
         print("恭喜你，成功把恶魔打得体无完肤！")
     elif chosen_game.e_hp == -2 :
@@ -1870,7 +2059,7 @@ if chosen_game.r_hp > 0 :
         print("恭喜你，成功让恶魔原地消失！")
 elif chosen_game.r_hp == 0 :
     if chosen_game.e_hp > 0 :
-        print("唉....你被恶魔变成了猫娘")
+        print("唉....你被恶魔变成了{0}".format(cat_girl))
     elif chosen_game.e_hp == 0 :
         print("你们最后同归于尽了")
         gamesave.add_exp(25)
@@ -1880,11 +2069,11 @@ elif chosen_game.r_hp == 0 :
         gamesave.add_exp(80)
         gamesave.add_coins(3)
     elif chosen_game.e_hp == -2 :
-        print("恶魔为你化作灰烬，而你成为了猫娘")
+        print("恶魔为你化作灰烬，而你成为了{0}".format(cat_girl))
         gamesave.add_exp(400)
         gamesave.add_coins(10)
     else :
-        print("你作为猫娘看着恶魔消失于世上")
+        print("你作为{0}看着恶魔消失于世上".format(cat_girl))
         gamesave.add_exp(1500)
         gamesave.add_coins(32)
 elif chosen_game.r_hp == -1 :
@@ -1910,7 +2099,7 @@ elif chosen_game.r_hp == -2 :
     if chosen_game.e_hp > 0 :
         print("唉....你被恶魔化作一团灰烬")
     elif chosen_game.e_hp == 0 :
-        print("你为恶魔化作灰烬，而它成为了猫娘")
+        print("你为恶魔化作灰烬，而它成为了{0}".format(cat_girl))
         gamesave.add_exp(400)
         gamesave.add_coins(10)
     elif chosen_game.e_hp == -1 :
@@ -1929,7 +2118,7 @@ else :
     if chosen_game.e_hp > 0 :
         print("唉....恶魔让你人间蒸发了")
     elif chosen_game.e_hp == 0 :
-        print("恶魔作为猫娘看着你消失于世上")
+        print("恶魔作为{0}看着你消失于世上".format(cat_girl))
         gamesave.add_exp(1500)
         gamesave.add_coins(32)
     elif chosen_game.e_hp == -1 :

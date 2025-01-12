@@ -5,7 +5,7 @@ from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple, \
 from .gameapi import Game, Slot, ShootResult
 
 __all__ = ["GENERIC_TOOLS", "GAMEMODE_SET", "gen_tools_from_generic_tools",
-           "NormalGame"]
+           "StageGame", "NormalGame"]
 
 GENERIC_TOOLS: Tuple[Tuple[str, Optional[str]], ...] = (
     ("良枪(一)", "保证向自己开枪不会炸膛(无提示)"), # ID0
@@ -40,7 +40,7 @@ GENERIC_TOOLS: Tuple[Tuple[str, Optional[str]], ...] = (
     ("双枪会给出答案", "双倍枪筒,双倍快乐"), # ID29
     ("所有或一无所有", "一夜暴富?一夜归零?"), # ID30 TODO
     ("超级大木锤", "整回合都是我的了"), # ID31
-    ("不死不休", "打上擂台"), # ID32 TODO
+    ("不死不休", "打上擂台"), # ID32
     ("枪筒维修", "降低开枪的炸膛概率") # ID33
 )
 
@@ -50,6 +50,39 @@ def gen_tools_from_generic_tools(toolids: Iterable[int]) -> \
     for i in toolids :
         RES[i] = GENERIC_TOOLS[i]
     return RES
+
+class StageGame(Game) :
+    tot_hp: int
+
+    def __init__(self, r_hp: int, e_hp: int, firsthand: bool) :
+        super().__init__(
+            1,
+            1,
+            0,
+            0,
+            1,
+            r_hp,
+            e_hp,
+            {},
+            {},
+            {},
+            {},
+            0,
+            firsthand,
+            {}
+        )
+        self.tot_hp = r_hp + e_hp
+
+    def shoot(self, to_self: bool, shooter: Optional[bool] = None,
+              explosion_probability: Union[float,
+                                           Callable[["Game"], float]] = 0.05,
+              bullets_id: Optional[int] = None, run_turn: bool = True) -> \
+        ShootResult :
+        if bullets_id is not None and bullets_id not in (1, 2, 3) :
+            self.bullets.append(not randint(0, 1))
+        return super().shoot(
+            to_self, shooter, explosion_probability, bullets_id, run_turn
+        )
 
 class NormalGame(Game) :
     explosion_exponent: int
@@ -223,7 +256,7 @@ infinite_mode: NormalGame = NormalGame(
     2,
     18446744073709551615,
     gen_tools_from_generic_tools(
-        filter((lambda x: x not in (10, 11, 13)), range(34))
+        filter((lambda x: x not in (10, 11, 13, 32)), range(34))
     ),
     {
         0: 8,
@@ -253,7 +286,6 @@ infinite_mode: NormalGame = NormalGame(
         29: 1,
         30: 1,
         31: 2,
-        32: 1,
         33: 2
     },
     {
@@ -286,7 +318,6 @@ infinite_mode: NormalGame = NormalGame(
         29: 2,
         30: 8,
         31: 32,
-        32: 5,
         33: 0
     },
     {
@@ -319,7 +350,6 @@ infinite_mode: NormalGame = NormalGame(
         29: 0,
         30: 4,
         31: 16,
-        32: 3,
         33: 3
     },
     9,

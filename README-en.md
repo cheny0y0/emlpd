@@ -2,11 +2,11 @@
 ## Regular Gameplay
 ### Run
 Python 3.6 or above is required.  
-type `python -m emlpd` in the terminal.
+Type `python -m emlpd` in the terminal.
 ### Game Rule Introduction
-You need to follow the hints given to you in the game interface to defeat Evil.
-To defeat the Evil, you need to make the Evil's HP 0 or less and your HP 0 or
-more.  
+You need to follow the hints given to you in the game interface to defeat the
+Evil. To defeat the Evil, you need to make the Evil's HP 0 or less and your HP
+above 0.  
 At the beginning of each round, the game will tell you the counts of true and
 false bullets are in the main clip. Each turn, you can choose to shoot at
 yourself or the opposite.   
@@ -16,16 +16,16 @@ shoot.
 If 1 true bullet is shot, it causes 1 point of base damage (may be defended
 against).  
 Each shot has a chance of exploding (i.e., making the bullet act to the
-opposite; can be changed with a tool), see Tool 21: **Pò Qiāng**.  
+opposite; can be changed with a tool), see _Tool 21: **Pò Qiāng**_.  
 If a side has a hurting point of _n_(0≤_n_≤8,_n_∈**N**), then for each point of
 true bullet damage to the opposite, there is a probability of _n_/8 that it
 will result in an additional HP of damage, and a probability of 1-_n_/8 that it
 will result in a hurting point plus 1. Hurting point is initially 0.  
-If a side has _m_(0≤_m_≤32,_m_∈**N***) and a hurting point of
-_n_(0≤_n_≤8,_n_∈**N***), and if _m_>0, then this side's stamina decrease by 1
+If a side has _m_(0≤_m_≤32,_m_∈**N**) and a hurting point of
+_n_(0≤_n_≤8,_n_∈**N**), and if _m_>0, then this side's stamina decrease by 1
 for each shot. Each turn this side's stamina has a 1/(_n_+1) probability of
 increasing by 1. When _m_<8, there is a probability of 1-_m_/8 of that this
-side will get dazed for a round.  
+side will get dazed for a turn.  
 If a side have _n_(_n_∈**N₊**) dazing turns, then if it would have been this
 side to shoot in the next turn, then the opposite still shoots in the next turn
 and the number of this side's dazing turns becomes _n_-1.
@@ -54,7 +54,7 @@ additional damage for each true bullets shot this turn.
 Let the outermost bullet of the main clip quit(make it disappear), and tell you
 whether the bullet was true or false.
 ##### Tool 4: Chāo Jí Xiǎo Mù Chuí
-Let the number of the opposite's dazing round increase by 1.
+Let the number of the opposite's dazing turn increase by 1.
 ##### Tool 5: Dào Dé De Chóng Gāo Zàn Xǔ
 Suppose your current HP is _m_(_m_∈**N₊**), hurting point is
 _n_(0≤_n_≤8,_n_∈**N**), if _m_≤3+_n_/3, there is a probability of 100% that
@@ -93,9 +93,9 @@ decrease by 1 for every 1 round that passes.
 ##### Tool 10: Fǎn Jiǎ
 _Not Implemented Yet_
 ##### Tool 11: Tóu Zi
-Let _m_=randint(1,6)+randint(1,6)+randint(1,6). If _m_=3, you break care for 2
-rounds; if _m_=4, your HP will decrease by 2 and tell you so; if _m_=5, the
-true-false state of the bullets in the main clip changes randomly from the
+Let _m_=randint(1,6)+randint(1,6)+randint(1,6). If _m_=3, you will break care
+for 2 rounds; if _m_=4, your HP will decrease by 2 and tell you so; if _m_=5,
+the true-false state of the bullets in the main clip changes randomly from the
 outside to the inside from the 3rd bullet; if _m_=6, your HP will decrease by 1
 and tell you so; if _m_=7, one of your non-limited tools disappears; if _m_=9,
 your stamina will increase by 1 until reaching the maximum; if _m_=10, your HP
@@ -121,12 +121,12 @@ stacked bandage, there is a probability of 50% that yours become the
 opposite's, and tells “你变成了恶魔的样子”; there is a probability of 50% that
 the opposite's become yours, and tells “恶魔变成了你的样子”. The two are
 opposite event.  
-And you and the opposite's dazing rounds will become 0.
+And your and the opposite's dazing turns will become 0.
 ##### Tool 14: Jiē Dàn Tào
 Let your stacked bullet catcher increase by 1. Suppose you currently have
 _n_(_n_∈**N₊**) stacked bullet catchers, the opposite's additional damage is
 _m_(_m_∈**N**), if the opposite shoots 1 true bullet, there is a probability of
-(1-0.8ⁿ)/(1+_m_) that you will catch it(avoids the damage from the bullet and
+(1-0.8*ⁿ*)/(1+_m_) that you will catch it(avoids the damage from the bullet and
 tells you “你接住了一颗子弹”) and put it into the tail of the main clip, and
 let your stacked bullet catcher be 0; if the opposite shoots 1 false bullet,
 there is a probability of 0.8/(1+_m_) that you will catch it(tells you
@@ -155,9 +155,9 @@ Let your stacked combo shooter count increase by 1.
 Suppose currently you have _m_(_m_∈**N**) stacked repeaters, _n_(_n_∈**N**)
 stacked combo shooters, amount of the bullets in main clip is _r_(_r_∈**N₊**),
 if you shoot at the opposite, then at least min(_r_,1+_m_) bullets will be
-shot, and there will be a probability of 1-2⁻ⁿ shooting 1 more bullet(if there
+shot, and there will be a probability of 1-2⁻*ⁿ* shooting 1 more bullet(if there
 exists a bullet in the clip). In other words, when _n_>0, there is a
-probability of min(1,pow(1-2⁻ⁿ,_r_-1-_m_)) of clearing the clip. Suppose
+probability of min(1,pow(1-2⁻*ⁿ*,_r_-1-_m_)) of clearing the clip. Suppose
 _s_(_s_∈**N₊**) bullets are shot from the main clip, if _s_>_n_, then your
 stacked combo shooter will become 0; if _s_≤_n_, then your stacked combo
 shooter will decrease by _s_. For each additional shot bullet(by stacked
@@ -220,13 +220,20 @@ wearings will be cleared, and the additional damage will become zero.
 ##### Tool 31: Chāo Jí Dà Mù Chuí
 This is an OP tool.  
 Suppose currently the main clip contains _n_(_n_∈**N₊**) bullets, make the
-opposite's dazing rounds increase by _n_.
+opposite's dazing turns increase by _n_.
 ##### Tool 32: Bù Sǐ Bù Xiū
-_Not Implemented Yet_
+This is an OP tool.  
+Initiate a stage battle, you and your opponent need to wager a certain amount
+of HP(integer, min 1, max current HP), which your opponent cannot refuse.
+During a stage battle, a batch of infinite bullet clips will be given out, and
+your and your opponent's wager will be the initial HP for the stage battle. No
+tools will be given out. When one side's HP reaches 0 or less, the other side
+wins the stage battle and then receives the sum of their bets' HPs, and the
+stage battle ends.
 ##### Tool 33: Qiāng Tǒng Wéi Xiū
-Make the explosion exponent 2/3 of what it was and tell you “你维修了一下枪筒”.
-If the explosion exponent is less than or equal to 0, this tool will not be
-used.
+Make the explosion exponent 2/3 of what it was(floored) and tell you
+“你维修了一下枪筒”. If the explosion exponent is less than or equal to 0, this
+tool will not be used.
 ### Game Mode Introduction
 #### 1. Pǔ Tōng Mó Shì
 Only 1 period.  
@@ -365,11 +372,11 @@ Input `9` for entering custom game mode.
 ## Classic Gameplay
 ### Run
 Python 3.6 or above is required.  
-type `python -m emlpd.classic` in the terminal.
+Type `python -m emlpd.classic` in the terminal.
 ### Game Rule Introduction
-You need to follow the hints given to you in the game interface to defeat Evil.
-To defeat the Evil, you need to make the Evil's HP 0 or less and your HP 0 or
-more.  
+You need to follow the hints given to you in the game interface to defeat the
+Evil. To defeat the Evil, you need to make the Evil's HP 0 or less and your HP
+above 0.  
 At the beginning of each round, the game will tell you the counts of true and
 false bullets are in the clip. Each turn, you can choose to shoot at yourself
 or the opposite.  
@@ -394,7 +401,7 @@ additional damage for each true bullets shot this turn.
 Let the outermost bullet of the clip quit(make it disappear), and tell you
 whether the bullet was true or false.
 ##### Tool 4: Chāo Jí Xiǎo Mù Chuí
-Let the number of the opposite's dazing round increase by 1.
+Let the number of the opposite's dazing turn increase by 1.
 ##### Tool 5: Dào Dé De Chóng Gāo Zàn Xǔ
 Suppose your current HP is _m_(_m_∈**N₊**), if _m_≤3, there is a probability of
 100% that your HP will increase by 1; if _m_>3, there is a probability of
