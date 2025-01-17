@@ -11,7 +11,7 @@ from .gameinst import CLASSIC_MODE
 gamesave: GameSave = GameSave()
 
 EXP_MUL_CALC: Callable[[int], float] = lambda x: (
-    (16*(-0.5*log((0.0625*x-120)**2+1)+atan(0.0625*x-120)*(0.0625*x-120))+\
+    (16*(-0.5*log((0.0625*x-120)**2+1)+atan(0.0625*x-120)*(0.0625*x-120))+
      1.5625*x)/32768+1-0.08921291791932255
 )*((1+x/65536)**0.5)
 
@@ -122,8 +122,16 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
                 CLASSIC_MODE.rel_turn_lap -= 1
         if CLASSIC_MODE.yourturn :
             if debug :
-                print("当前弹夹:", CLASSIC_MODE.bullets)
-                print("当前相对套轮数:", CLASSIC_MODE.rel_turn_lap)
+                for i in CLASSIC_MODE.debug_message :
+                    if i[1] is None :
+                        if i[2] is None :
+                            print(*i[0])
+                        else :
+                            print(*i[0], end=i[2])
+                    elif i[2] is None :
+                        print(*i[0], sep=i[1])
+                    else :
+                        print(*i[0], sep=i[1], end=i[2])
             if show_pp :
                 print("当前你的表现分:", r_pp)
                 print("当前恶魔表现分:", e_pp)
@@ -167,7 +175,7 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
                     elif to_use == 5 :
                         CLASSIC_MODE.r_tools.remove(5)
                         if CLASSIC_MODE.r_hp < 4 or \
-                           (random() < 0.5 ** (CLASSIC_MODE.r_hp-3) and \
+                           (random() < 0.5 ** (CLASSIC_MODE.r_hp-3) and
                             not nightmare) :
                             if CLASSIC_MODE.r_hp > 3 :
                                 r_pp_combo += 1
@@ -240,10 +248,10 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
                                 r_pp_combo += 1
                             r_pp += 840 * CLASSIC_MODE.bullets.count(True) * \
                                     r_pp_combo * \
-                                    (max(4+CLASSIC_MODE.e_tools.count(2)+\
-                                         CLASSIC_MODE.e_tools.count(4)-\
-                                         CLASSIC_MODE.r_hp, 1) if \
-                                     CLASSIC_MODE.rel_turn_lap <= 0 else \
+                                    (max(4+CLASSIC_MODE.e_tools.count(2)+
+                                         CLASSIC_MODE.e_tools.count(4)-
+                                         CLASSIC_MODE.r_hp, 1) if
+                                     CLASSIC_MODE.rel_turn_lap <= 0 else
                                      max(3-CLASSIC_MODE.r_hp, 1)) // \
                                     (len(CLASSIC_MODE.bullets)+1)
                         print("啊哈！，是个空弹！")
@@ -328,10 +336,10 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
                                 e_pp_combo += 1
                             e_pp += 840 * CLASSIC_MODE.bullets.count(True) * \
                                     e_pp_combo * \
-                                    (max(4+CLASSIC_MODE.r_tools.count(2)+\
-                                         CLASSIC_MODE.r_tools.count(4)-\
-                                         CLASSIC_MODE.e_hp, 1) if \
-                                     CLASSIC_MODE.rel_turn_lap >= 0 else \
+                                    (max(4+CLASSIC_MODE.r_tools.count(2)+
+                                         CLASSIC_MODE.r_tools.count(4)-
+                                         CLASSIC_MODE.e_hp, 1) if
+                                     CLASSIC_MODE.rel_turn_lap >= 0 else
                                      max(3-CLASSIC_MODE.e_hp, 1)) // \
                                     (len(CLASSIC_MODE.bullets)+1)
                         print("“啊哈！，是个空弹！”恶魔嘲讽道")

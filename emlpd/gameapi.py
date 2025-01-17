@@ -1,13 +1,13 @@
 from math import ceil
 from random import choice, randint, random
 import struct
-from typing import Callable, Dict, List, Optional, Tuple, no_type_check, Union
+from typing import Callable, Dict, List, Optional, Tuple, no_type_check, Union, Iterable
 
 __all__ = ["VER", "VER_STRING", "Slot", "ShootResult", "ShootResultAnalyzer",
-           "Game", "GameSave"]
+           "Game", "GameSave", "Player"]
 
 VER: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]] = \
-(0, 4, 2, "a", 1)
+(0, 4, 2, "a", 2)
 
 VER_STRING: str = \
 ("{0}.{1}.{2}-{3}{4}" if len(VER) > 4 else "{0}.{1}.{2}").format(*VER)
@@ -21,30 +21,87 @@ class ShootResultAnalyzer :
     def should_run_turn(result: ShootResult) -> bool :
         return any(x is not None and (x[0] or x[1]) for x in result)
 
-@no_type_check
-class Game :
-    tools: Dict[int, Tuple[str, Optional[str]]]
+class Player :
+    controllable: bool
+    hp: int
+    slots: List[Slot]
+    sending_total: Dict[int, int]
     tools_sending_weight: Dict[int, Union[int, Callable[["Game"], int]]]
     tools_sending_limit_in_game: Dict[int, int]
     tools_sending_limit_in_slot: Dict[int, Union[int, Callable[["Game"], int]]]
-    r_hp: int
-    e_hp: int
-    r_slots: List[Slot]
-    e_slots: List[Slot]
+    slot_sending_weight: Dict[int, Union[int, Callable[["Game"], int]]]
+    stopped_turns: int
+
+    def __init__(
+        self, controllable: bool = False, hp: int = 1,
+        slots: Union[List[Slot], int] = 0,
+        sending_total: Optional[Dict[int, int]] = None,
+        tools_sending_weight: Optional[Dict[
+            int, Union[int, Callable[["Game"], int]]
+        ]] = None,
+        tools_sending_limit_in_game: Optional[Dict[int, int]] = None,
+        tools_sending_limit_in_slot: Optional[Dict[
+            int, Union[int, Callable[["Game"], int]]
+        ]] = None, slot_sending_weight: Optional[Dict[
+            int, Union[int, Callable[["Game"], int]]
+        ]] = None, stopped_turns: int = 0
+    ) -> None :
+        self.controllable = controllable
+        self.hp = hp
+        self.slots = \
+        [(0, None)] * slots if isinstance(slots, int) else slots[:]
+        self.sending_total = \
+        {} if sending_total is None else sending_total.copy()
+        self.tools_sending_weight = \
+        {} if tools_sending_weight is None else tools_sending_weight.copy()
+        self.tools_sending_limit_in_game = \
+        {} if tools_sending_limit_in_game is None else \
+        tools_sending_limit_in_game.copy()
+        self.tools_sending_limit_in_slot = \
+        {} if tools_sending_limit_in_slot is None else \
+        tools_sending_limit_in_slot.copy()
+        self.slot_sending_weight = \
+        {} if slot_sending_weight is None else slot_sending_weight.copy()
+        self.stopped_turns = stopped_turns
+
+    @property
+    def alive(self) -> bool :
+        return self.hp > 0
+
+    def can_use_tools(self, game: "Game") -> bool :
+        for k, v in self.tools_sending_weight.items() :
+            if (v if isinstance(v, int) else v(game)) > 0  :
+                return True
+        return False
+
+    def user_operatable(self, game: "Game") -> bool :
+        return self.controllable
+
+@no_type_check
+class Game :
+    players: Dict[int, Player]
+    turn_orders: List[int]
+    tools: Dict[int, Tuple[str, Optional[str]]]
+    tools_sending_weight: Dict[
+        int, Union[int, Callable[["Game"], int]]
+    ] # deprecated
+    tools_sending_limit_in_game: Dict[int, int] # deprecated
+    tools_sending_limit_in_slot: Dict[
+        int, Union[int, Callable[["Game"], int]]
+    ] # deprecated
     slots_sharing: Optional[Tuple[bool, int, List[Slot]]]
-    r_sending_total: Dict[int, int]
-    e_sending_total: Dict[int, int]
     max_bullets: int
     min_bullets: int
     min_true_bullets: int
     min_false_bullets: int
     max_true_bullets: int
     bullets: List[bool]
-    yourturn: bool
-    rel_turn_lap: int
+    rel_turn_lap: int # deprecated
     extra_bullets: Tuple[Optional[List[bool]], Optional[List[bool]],
                          Optional[List[bool]]]
-    slot_sending_weight: Dict[int, Union[int, Callable[["Game"], int]]]
+    slot_sending_weight: Dict[
+        int, Union[int, Callable[["Game"], int]]
+    ] # deprecated
     subgame: Optional["Game"]
 
     def __init__(
@@ -77,29 +134,102 @@ class Game :
         :param slot_sending_weight: 槽位发放相对权重(键为槽位有效期,值为相对权重值)。
         """
 
+        self.players = {
+            0: Player(
+                True,
+                r_hp,
+                permanent_slots,
+                None,
+                tools_sending_weight,
+                tools_sending_limit_in_game,
+                tools_sending_limit_in_slot,
+                {1: 5, 2: 6, 3: 6, 4: 2, 5: 1} if slot_sending_weight is None \
+                else slot_sending_weight
+            ),
+            1: Player(
+                False,
+                e_hp,
+                permanent_slots,
+                None,
+                tools_sending_weight,
+                tools_sending_limit_in_game,
+                tools_sending_limit_in_slot,
+                {1: 5, 2: 6, 3: 6, 4: 2, 5: 1} if slot_sending_weight is None \
+                else slot_sending_weight
+            )
+        }
         self.min_bullets = min_bullets
         self.max_bullets = max_bullets
         self.min_true_bullets = min_true_bullets
         self.min_false_bullets = min_false_bullets
         self.max_true_bullets = max_true_bullets
-        self.r_hp = r_hp
-        self.e_hp = e_hp
         self.tools = tools
         self.tools_sending_weight = tools_sending_weight
         self.tools_sending_limit_in_game = tools_sending_limit_in_game
         self.tools_sending_limit_in_slot = tools_sending_limit_in_slot
-        self.r_slots = [(0, None)] * permanent_slots
-        self.e_slots = [(0, None)] * permanent_slots
         self.slots_sharing = None
-        self.r_sending_total = {}
-        self.e_sending_total = {}
-        self.yourturn = firsthand
+        self.turn_orders = [0, 1] if firsthand else [1, 0]
         self.rel_turn_lap = 0
         self.extra_bullets = (None, None, None)
         self.slot_sending_weight = {1: 5, 2: 6, 3: 6, 4: 2, 5: 1} \
                                    if slot_sending_weight is None \
                                    else slot_sending_weight.copy()
         self.subgame = None
+
+    @property
+    def r_hp(self) -> int :
+        return self.players[0].hp
+    @r_hp.setter
+    def r_hp(self, value: int) -> None :
+        self.players[0].hp = value
+
+    @property
+    def e_hp(self) -> int :
+        return self.players[1].hp
+    @e_hp.setter
+    def e_hp(self, value: int) -> None :
+        self.players[1].hp = value
+
+    @property
+    def r_slots(self) -> List[Slot] :
+        return self.players[0].slots
+    @r_slots.setter
+    def r_slots(self, value: List[Slot]) -> None :
+        self.players[0].slots = value
+
+    @property
+    def e_slots(self) -> List[Slot] :
+        return self.players[1].slots
+    @e_slots.setter
+    def e_slots(self, value: List[Slot]) -> None :
+        self.players[1].slots = value
+
+    @property
+    def r_sending_total(self) -> Dict[int, int] :
+        return self.players[0].sending_total
+    @r_sending_total.setter
+    def r_sending_total(self, value: Dict[int, int]) -> None :
+        self.players[0].sending_total = value
+
+    @property
+    def e_sending_total(self) -> Dict[int, int] :
+        return self.players[1].sending_total
+    @e_sending_total.setter
+    def e_sending_total(self, value: Dict[int, int]) -> None :
+        self.players[1].sending_total = value
+
+    @property
+    def yourturn(self) -> bool :
+        return not self.turn_orders[0]
+    @yourturn.setter
+    def yourturn(self, value: object) -> None :
+        if self.turn_orders[0] :
+            if value :
+                self.turn_orders.remove(0)
+                self.turn_orders.insert(0, 0)
+        elif not value :
+            self.turn_orders.remove(0)
+            self.turn_orders.append(0)
 
     def gen_bullets(self, bullets_id: Optional[int] = None) -> \
         Optional[List[bool]] :
@@ -196,20 +326,21 @@ class Game :
         """
 
         randomlist: List[int] = []
-        for k, v in self.tools_sending_weight.items() :
+        for k, v in self.players[0].tools_sending_weight.items() :
             for _ in range(v if isinstance(v, int) else v(self)) :
                 randomlist.append(k)
         while 1 :
             randomid: int = choice(randomlist)
             tool_sending_limit_in_slot: int = \
-            self.tools_sending_limit_in_slot[randomid] \
-            if isinstance(self.tools_sending_limit_in_slot[randomid], int) \
-            else self.tools_sending_limit_in_slot[randomid](self)
-            if (randomid not in self.r_sending_total or \
-                self.tools_sending_limit_in_game[randomid] <= 0 or \
-                self.r_sending_total[randomid] < \
-                self.tools_sending_limit_in_game[randomid]) and \
-               (tool_sending_limit_in_slot <= 0 or \
+            self.players[0].tools_sending_limit_in_slot[randomid] if \
+            isinstance(
+                self.players[0].tools_sending_limit_in_slot[randomid], int
+            ) else self.players[0].tools_sending_limit_in_slot[randomid](self)
+            if (randomid not in self.r_sending_total or
+                self.players[0].tools_sending_limit_in_game[randomid] <= 0 or
+                self.r_sending_total[randomid] <
+                self.players[0].tools_sending_limit_in_game[randomid]) and \
+               (tool_sending_limit_in_slot <= 0 or
                 self.count_tools_of_r(randomid) < tool_sending_limit_in_slot) :
                 return randomid
         raise AssertionError
@@ -222,20 +353,21 @@ class Game :
         """
 
         randomlist: List[int] = []
-        for k, v in self.tools_sending_weight.items() :
+        for k, v in self.players[1].tools_sending_weight.items() :
             for _ in range(v if isinstance(v, int) else v(self)) :
                 randomlist.append(k)
         while 1 :
             randomid: int = choice(randomlist)
             tool_sending_limit_in_slot: int = \
-            self.tools_sending_limit_in_slot[randomid] \
-            if isinstance(self.tools_sending_limit_in_slot[randomid], int) \
-            else self.tools_sending_limit_in_slot[randomid](self)
-            if (randomid not in self.e_sending_total or \
-                self.tools_sending_limit_in_game[randomid] <= 0 or \
-                self.e_sending_total[randomid] < \
-                self.tools_sending_limit_in_game[randomid]) and \
-               (tool_sending_limit_in_slot <= 0 or \
+            self.players[1].tools_sending_limit_in_slot[randomid] if \
+            isinstance(
+                self.players[1].tools_sending_limit_in_slot[randomid], int
+            ) else self.players[1].tools_sending_limit_in_slot[randomid](self)
+            if (randomid not in self.e_sending_total or
+                self.players[1].tools_sending_limit_in_game[randomid] <= 0 or
+                self.e_sending_total[randomid] <
+                self.players[1].tools_sending_limit_in_game[randomid]) and \
+               (tool_sending_limit_in_slot <= 0 or
                 self.count_tools_of_e(randomid) < tool_sending_limit_in_slot) :
                 return randomid
         raise AssertionError
@@ -313,12 +445,12 @@ class Game :
         return 0
 
     def run_turn(self) -> None :
-        if self.rel_turn_lap > 0 :
-            self.rel_turn_lap -= 1
-        elif self.rel_turn_lap < 0 :
-            self.rel_turn_lap += 1
-        else :
-            self.yourturn = not self.yourturn
+        self.turn_orders.append(self.turn_orders[0])
+        del self.turn_orders[0]
+        while self.players[self.turn_orders[0]].stopped_turns > 0 :
+            self.players[self.turn_orders[0]].stopped_turns -= 1
+            self.turn_orders.append(self.turn_orders[0])
+            del self.turn_orders[0]
 
     def shoot(self, to_self: bool, shooter: Optional[bool] = None,
               explosion_probability: Union[float,
@@ -393,10 +525,30 @@ class Game :
         for _ in range(combo) :
             RES.append(self.shoot(to_self, shooter, explosion_probability,
                                   bullets_id, False))
-        if run_turn and (any(ShootResultAnalyzer.should_run_turn(x) \
+        if run_turn and (any(ShootResultAnalyzer.should_run_turn(x)
                              for x in RES) or not to_self) :
             self.run_turn()
         return RES
+
+    def send_slot(self, player: Player, sent_probability: float = 0.25,
+                  sent_weight: Optional[Dict[int, Union[int, Callable[
+                      ["Game"], int
+                  ]]]] = None) -> Optional[int] :
+        if sent_weight is None :
+            return self.send_slot(
+                player, sent_probability, player.slot_sending_weight
+            )
+        if random() >= sent_probability :
+            return None
+        randomlist: List[int] = []
+        for k, v in sent_weight.items() :
+            for _ in range(v if isinstance(v, int) else v(self)) :
+                randomlist.append(k)
+        if not randomlist :
+            return None
+        duration: int = choice(randomlist)
+        self.r_slots.append((duration, None))
+        return duration
 
     def send_r_slot(self, sent_probability: float = 0.25,
                     sent_weight: Optional[Dict[int, Union[int, Callable[
@@ -410,19 +562,7 @@ class Game :
         :return: 送出槽位的时长。若未送出则返回None。
         """
 
-        if sent_weight is None :
-            return self.send_r_slot(sent_probability, self.slot_sending_weight)
-        if random() >= sent_probability :
-            return None
-        randomlist: List[int] = []
-        for k, v in sent_weight.items() :
-            for _ in range(v if isinstance(v, int) else v(self)) :
-                randomlist.append(k)
-        if not randomlist :
-            return None
-        duration: int = choice(randomlist)
-        self.r_slots.append((duration, None))
-        return duration
+        return self.send_slot(self.players[0], sent_probability, sent_weight)
 
     def send_e_slot(self, sent_probability: float = 0.25,
                     sent_weight: Optional[Dict[int, Union[int, Callable[
@@ -436,19 +576,22 @@ class Game :
         :return: 送出槽位的时长。若未送出则返回None。
         """
 
-        if sent_weight is None :
-            return self.send_e_slot(sent_probability, self.slot_sending_weight)
-        if random() >= sent_probability :
-            return None
-        randomlist: List[int] = []
-        for k, v in sent_weight.items() :
-            for _ in range(v if isinstance(v, int) else v(self)) :
-                randomlist.append(k)
-        if not randomlist :
-            return None
-        duration: int = choice(randomlist)
-        self.e_slots.append((duration, None))
-        return duration
+        return self.send_slot(self.players[1], sent_probability, sent_weight)
+
+    def expire_slots(self, player) -> List[Optional[int]] :
+        RES: List[Optional[int]] = []
+        slot_index: int = 0
+        while slot_index < len(player.slots) :
+            if player.slots[slot_index][0] <= 0 :
+                slot_index += 1
+                continue
+            if player.slots[slot_index][0] > 1 :
+                player.slots[slot_index] = (player.slots[slot_index][0] - 1,
+                                            player.slots[slot_index][1])
+                slot_index += 1
+                continue
+            RES.append(player.slots.pop(slot_index)[1])
+        return RES
 
     def expire_r_slots(self) -> List[Optional[int]] :
         """
@@ -457,19 +600,7 @@ class Game :
         :return: 列表,包含过期的槽位的道具ID。
         """
 
-        RES: List[Optional[int]] = []
-        r_slot_index: int = 0
-        while r_slot_index < len(self.r_slots) :
-            if self.r_slots[r_slot_index][0] <= 0 :
-                r_slot_index += 1
-                continue
-            if self.r_slots[r_slot_index][0] > 1 :
-                self.r_slots[r_slot_index] = (self.r_slots[r_slot_index][0]-1,
-                                              self.r_slots[r_slot_index][1])
-                r_slot_index += 1
-                continue
-            RES.append(self.r_slots.pop(r_slot_index)[1])
-        return RES
+        return self.expire_slots(self.players[0])
 
     def expire_e_slots(self) -> List[Optional[int]] :
         """
@@ -478,19 +609,7 @@ class Game :
         :return: 列表,包含过期的槽位的道具ID。
         """
 
-        RES: List[Optional[int]] = []
-        e_slot_index: int = 0
-        while e_slot_index < len(self.e_slots) :
-            if self.e_slots[e_slot_index][0] <= 0 :
-                e_slot_index += 1
-                continue
-            if self.e_slots[e_slot_index][0] > 1 :
-                self.e_slots[e_slot_index] = (self.e_slots[e_slot_index][0]-1,
-                                              self.e_slots[e_slot_index][1])
-                e_slot_index += 1
-                continue
-            RES.append(self.e_slots.pop(e_slot_index)[1])
-        return RES
+        return self.expire_slots(self.players[1])
 
     def copy_bullets_for_new(self) -> int :
         if self.extra_bullets == (None, None, None) :
@@ -502,6 +621,12 @@ class Game :
                                   self.extra_bullets[0][:])
             return 2
         return 0
+
+    @property
+    def debug_message(self) -> Iterable[Tuple[
+        Iterable[object], Optional[str], Optional[str]
+    ]] :
+        return ()
 
 def read_256byte_int_from_bytes(src: bytes, digits: Optional[int] = None,
                                 signed: bool = False, offset: int = 0) -> int :

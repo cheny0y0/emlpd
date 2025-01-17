@@ -1,5 +1,5 @@
 from random import choice, randint
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 from ..gameapi import VER, VER_STRING, GameSave
 
@@ -104,11 +104,11 @@ class Game :
             self.tools_sending_limit_in_hand[randomid] \
             if isinstance(self.tools_sending_limit_in_hand[randomid], int) \
             else self.tools_sending_limit_in_hand[randomid](self)
-            if (randomid not in self.r_sending_total or \
-                self.tools_sending_limit_in_game[randomid] <= 0 or \
-                self.r_sending_total[randomid] < \
+            if (randomid not in self.r_sending_total or
+                self.tools_sending_limit_in_game[randomid] <= 0 or
+                self.r_sending_total[randomid] <
                 self.tools_sending_limit_in_game[randomid]) and \
-               (tool_sending_limit_in_hand <= 0 or \
+               (tool_sending_limit_in_hand <= 0 or
                 self.r_tools.count(randomid) < tool_sending_limit_in_hand) :
                 return randomid
         raise AssertionError
@@ -130,11 +130,11 @@ class Game :
             self.tools_sending_limit_in_hand[randomid] \
             if isinstance(self.tools_sending_limit_in_hand[randomid], int) \
             else self.tools_sending_limit_in_hand[randomid](self)
-            if (randomid not in self.e_sending_total or \
-                self.tools_sending_limit_in_game[randomid] <= 0 or \
-                self.e_sending_total[randomid] < \
+            if (randomid not in self.e_sending_total or
+                self.tools_sending_limit_in_game[randomid] <= 0 or
+                self.e_sending_total[randomid] <
                 self.tools_sending_limit_in_game[randomid]) and \
-               (tool_sending_limit_in_hand <= 0 or \
+               (tool_sending_limit_in_hand <= 0 or
                 self.e_tools.count(randomid) < tool_sending_limit_in_hand) :
                 return randomid
         raise AssertionError
@@ -192,3 +192,12 @@ class Game :
             else :
                 self.yourturn = not self.yourturn
         return bullet
+
+    @property
+    def debug_message(self) -> Iterable[Tuple[
+        Iterable[object], Optional[str], Optional[str]
+    ]] :
+        return (
+            (("当前弹夹:", self.bullets), None, None),
+            (("当前相对套轮数:", self.rel_turn_lap), None, None)
+        )
