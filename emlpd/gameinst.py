@@ -260,8 +260,12 @@ class NormalGame(Game) :
         if isinstance(r, NormalPlayer) and isinstance(e, NormalPlayer) :
             res.append((("双方体力:", r.stamina, "-", e.stamina), None, None))
             if self.has_tools(9) or r.bulletproof or e.bulletproof :
-                res.append((("你的防弹衣:", r.bulletproof), None, None))
-                res.append((("恶魔的防弹衣:", e.bulletproof), None, None))
+                if e.controllable :
+                    res.append((("玩家 0 的防弹衣:", r.bulletproof),None,None))
+                    res.append((("玩家 1 的防弹衣:", e.bulletproof),None,None))
+                else :
+                    res.append((("你的防弹衣:", r.bulletproof), None, None))
+                    res.append((("恶魔的防弹衣:", e.bulletproof), None, None))
             if self.has_tools(14) or r.bullet_catcher_level or \
                e.bullet_catcher_level :
                 res.append((("双方的叠加接弹套:", r.bullet_catcher_level, "-",
@@ -274,15 +278,15 @@ class NormalGame(Game) :
                              e.comboshoot_level), None, None))
             if self.has_tools(0) or r.selfshoot_promises or \
                e.selfshoot_promises :
-                res.append((("双方的良枪(一)数:", r.selfshoot_promises, "-",
+                res.append((("双方的叠加良枪(一):", r.selfshoot_promises, "-",
                              e.selfshoot_promises), None, None))
             if self.has_tools(1) or r.againstshoot_promises or \
                e.againstshoot_promises :
-                res.append((("双方的良枪(二)数:", r.againstshoot_promises, "-",
-                             e.againstshoot_promises), None, None))
+                res.append((("双方的叠加良枪(二):", r.againstshoot_promises,
+                             "-", e.againstshoot_promises), None, None))
             if self.has_tools(21) or r.cursed_shoot_level or \
                e.cursed_shoot_level :
-                res.append((("双方的破枪数:", r.cursed_shoot_level, "-",
+                res.append((("双方的叠加破枪:", r.cursed_shoot_level, "-",
                              e.cursed_shoot_level), None, None))
             if self.has_tools(9) or self.has_tools(11) or \
                r.breakcare_rounds or e.breakcare_rounds or \
@@ -323,7 +327,7 @@ normal_mode: NormalGame = NormalGame(
     8,
     1,
     10,
-    gen_tools_from_generic_tools(filter((lambda x: x!=10), range(34))),
+    gen_tools_from_generic_tools(filter((lambda x: x!=10), range(36))),
     {
         0: 8,
         1: 4,
@@ -449,7 +453,7 @@ infinite_mode: NormalGame = NormalGame(
     2,
     18446744073709551615,
     gen_tools_from_generic_tools(
-        filter((lambda x: x not in (10, 11, 13, 32)), range(34))
+        filter((lambda x: x not in (10, 11, 13, 32)), range(36))
     ),
     {
         0: 8,

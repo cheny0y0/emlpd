@@ -403,12 +403,10 @@ while 1 :
                     print("本轮由玩家", chosen_game.turn_orders[0], "操作")
                 print(
                     "请选择:1朝对方开枪,0朝自己开枪,7打开道具库,8查看对方道具"\
-                    if chosen_game.has_tools() or \
-                       chosen_game.count_tools_of_r(None) < \
-                       len(chosen_game.r_slots) or \
-                       chosen_game.count_tools_of_e(None) < \
-                       len(chosen_game.e_slots) else \
-                    "请选择:1朝对方开枪,0朝自己开枪"
+                    if chosen_game.has_tools() or any(
+                        x.count_tools(None) < len(x.slots)
+                        for x in chosen_game.players.values()
+                    ) else "请选择:1朝对方开枪,0朝自己开枪"
                 )
                 try :
                     operation = int(input())
@@ -801,10 +799,9 @@ while 1 :
                             if chosen_game.bullets != original_bullets :
                                 print("弹夹有变动")
                         elif to_use == 16 :
-                            player.slots[tools_existence[16]] = \
-                            (player.slots[tools_existence[16]][0], None)
                             former_bullets: List[bool] = chosen_game.bullets[:]
                             chosen_game.bullets.clear()
+                            print("输入0以开始重整弹药,直接按回车以取消。")
                             for i in range(len(former_bullets)) :
                                 for bullet_index in range(i) :
                                     print(end=str(bullet_index))
@@ -819,13 +816,33 @@ while 1 :
                                     try :
                                         insertion = int(input())
                                     except ValueError :
-                                        pass
+                                        if not chosen_game.bullets :
+                                            chosen_game.bullets.extend(
+                                                former_bullets
+                                            )
+                                            used = False
+                                            break
+                                if not used :
+                                    break
                                 chosen_game.bullets.insert(
                                     insertion, former_bullets.pop(randint(
                                         0, len(former_bullets)-1
                                     ))
                                 )
-                            print("你重整了一下弹药")
+                            if used :
+                                player.slots[tools_existence[16]] = \
+                                (player.slots[tools_existence[16]][0], None)
+                                for bullet_index in range(len(
+                                        chosen_game.bullets
+                                )) :
+                                    print(end=str(bullet_index))
+                                    print(
+                                        end="实" if \
+                                            chosen_game.bullets[bullet_index] \
+                                            else "空"
+                                    )
+                                print(len(chosen_game.bullets))
+                                print("你重整了一下弹药")
                         elif to_use == 17 :
                             if isinstance(player, NormalPlayer) :
                                 player.slots[tools_existence[17]] = \
@@ -2010,38 +2027,54 @@ while 1 :
                     if will_use :
                         evil_hp: int = randint(1, player.hp)
                         print("恶魔以", evil_hp, "生命值向你发起了擂台战")
-                        if victim.hp == 1 :
-                            print("你以仅有的 1 生命值应战")
-                            victim.hp -= 1
+                        if victim.controllable :
+                            if victim.hp == 1 :
+                                print("你以仅有的 1 生命值应战")
+                                victim.hp -= 1
+                                player.hp -= evil_hp
+                                parent_game.subgame = StageGame(
+                                    1, evil_hp, False
+                                )
+                                sub_game = parent_game.subgame
+                                chosen_game = \
+                                parent_game if sub_game is None else sub_game
+                                if isinstance(sub_game, StageGame) :
+                                    sub_game.gen_bullets()
+                            else :
+                                while True :
+                                    try :
+                                        your_hp: int = int(input(
+                                            "请输入你要作为赌注的生命值"
+                                            "(1~{0}):".format(victim.hp)
+                                        ))
+                                        if 0 < your_hp <= victim.hp :
+                                            victim.hp -= your_hp
+                                            player.hp -= evil_hp
+                                            parent_game.subgame = StageGame(
+                                                your_hp, evil_hp, False
+                                            )
+                                            sub_game = parent_game.subgame
+                                            chosen_game = \
+                                            parent_game if sub_game is None \
+                                            else sub_game
+                                            if isinstance(sub_game, StageGame):
+                                                sub_game.gen_bullets()
+                                            break
+                                    except ValueError :
+                                        pass
+                        else :
+                            your_hp = randint(1, victim.hp)
+                            print("你以", your_hp, "生命值应战")
+                            victim.hp -= your_hp
                             player.hp -= evil_hp
-                            parent_game.subgame = StageGame(1, evil_hp, False)
+                            parent_game.subgame = StageGame(
+                                your_hp, evil_hp, False
+                            )
                             sub_game = parent_game.subgame
                             chosen_game = \
                             parent_game if sub_game is None else sub_game
                             if isinstance(sub_game, StageGame) :
                                 sub_game.gen_bullets()
-                        else :
-                            while True :
-                                try :
-                                    your_hp: int = int(input(
-                                        "请输入你要作为赌注的生命值(1~{0}):"
-                                        .format(victim.hp)
-                                    ))
-                                    if 0 < your_hp <= victim.hp :
-                                        victim.hp -= your_hp
-                                        player.hp -= evil_hp
-                                        parent_game.subgame = StageGame(
-                                            your_hp, evil_hp, False
-                                        )
-                                        sub_game = parent_game.subgame
-                                        chosen_game = \
-                                        parent_game if sub_game is None \
-                                        else sub_game
-                                        if isinstance(sub_game, StageGame) :
-                                            sub_game.gen_bullets()
-                                        break
-                                except ValueError :
-                                    pass
                         break
                 elif slot[1] == 33 :
                     will_use = nightmare or not randint(0, 4)
