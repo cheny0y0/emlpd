@@ -298,38 +298,58 @@ while 1 :
                     print("随着槽位的到期,玩家", i, "的",
                           chosen_game.tools[tool_id][0], "不翼而飞")
     sleep(1)
-    r_new_slot: Optional[int] = chosen_game.send_r_slot()
-    e_new_slot: Optional[int]
-    if nightmare :
-        filtered: List[int] = []
-        for i in filter(lambda key: (
-            chosen_game.players[1].slot_sending_weight[key] if isinstance(
-                chosen_game.players[1].slot_sending_weight[key], int
-            ) else chosen_game.players[1].slot_sending_weight[key](chosen_game)
-        ) > 0, chosen_game.players[1].slot_sending_weight) :
-            filtered.append(i)
-        e_new_slot = chosen_game.send_e_slot(1., {
-            0 if min(filtered) <= 0 else max(filtered): 1
-        }) if filtered else None
-    else :
-        e_new_slot = chosen_game.send_e_slot()
-    if r_new_slot is not None :
-        if r_new_slot > 0 :
-            print("你获得1个有效期", r_new_slot, "回合的空槽位")
+    for i, player in chosen_game.players.items() :
+        if player.controllable or i != 1 :
+            new_slot: Optional[int] = chosen_game.send_slot(player)
+            if new_slot is not None :
+                if new_slot > 0 :
+                    if i == 0 and not chosen_game.players[1].controllable :
+                        print("你获得1个有效期", new_slot, "回合的空槽位")
+                    else :
+                        print("玩家", i, "获得1个有效期", new_slot,
+                              "回合的空槽位")
+                elif i == 0 and not chosen_game.players[1].controllable :
+                    print("你获得1个永久空槽位")
+                else :
+                    print("玩家", i, "获得1个永久空槽位")
         else :
-            print("你获得1个永久空槽位")
-    if e_new_slot is not None :
-        if e_new_slot > 0 :
-            print("恶魔获得1个有效期", e_new_slot, "回合的空槽位")
-        else :
-            print("恶魔获得1个永久空槽位")
-    if chosen_game.has_tools() :
-        print("你获得",
-              chosen_game.send_tools_to_r(GAMEMODE_SET[gamemode_i][1]),
-              "个道具")
-        print("恶魔获得",
-              chosen_game.send_tools_to_e(GAMEMODE_SET[gamemode_i][1]),
-              "个道具")
+            new_slot: Optional[int]
+            if nightmare :
+                filtered: List[int] = []
+                for j in filter(lambda key: (
+                    player.slot_sending_weight[key] if isinstance(
+                        player.slot_sending_weight[key], int
+                    ) else player.slot_sending_weight[key](chosen_game)
+                ) > 0, player.slot_sending_weight) :
+                    filtered.append(j)
+                new_slot = chosen_game.send_e_slot(1., {
+                    0 if min(filtered) <= 0 else max(filtered): 1
+                }) if filtered else None
+            else :
+                new_slot = chosen_game.send_slot(player)
+            if new_slot is not None :
+                if new_slot > 0 :
+                    print("恶魔获得1个有效期", new_slot, "回合的空槽位")
+                else :
+                    print("恶魔获得1个永久空槽位")
+    any_player_has_tools: bool = False
+    for i, player in chosen_game.players.items() :
+        if chosen_game.has_tools(player=player) :
+            any_player_has_tools = True
+            if player.controllable or i != 1 :
+                if i == 0 and not chosen_game.players[1].controllable :
+                    print("你获得", chosen_game.send_tools(
+                        player, GAMEMODE_SET[gamemode_i][1]
+                    ), "个道具")
+                else :
+                    print("玩家", i, "获得", chosen_game.send_tools(
+                        player, GAMEMODE_SET[gamemode_i][1]
+                    ), "个道具")
+            else :
+                print("恶魔获得", chosen_game.send_tools(
+                    player, GAMEMODE_SET[gamemode_i][1]
+                ), "个道具")
+    if any_player_has_tools :
         sleep(1)
     chosen_game.gen_bullets()
     print("子弹共有", len(chosen_game.bullets), "发")

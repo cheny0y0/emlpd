@@ -14,17 +14,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import sys
 from math import ceil
 from random import choice, randint, random
 import struct
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union, \
                    no_type_check
 
+if sys.version_info >= (3, 13) :
+    from warnings import deprecated
+else :
+    def deprecated(message: str) :
+        return lambda o: o
+
 __all__ = ["VER", "VER_STRING", "Slot", "ShootResult", "ShootResultAnalyzer",
            "Game", "GameSave", "Player"]
 
 VER: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]] = \
-(0, 4, 2, "b", 1)
+(0, 4, 2, "b", 2)
 
 VER_STRING: str = \
 ("{0}.{1}.{2}-{3}{4}" if len(VER) > 4 else "{0}.{1}.{2}").format(*VER)
@@ -93,6 +100,20 @@ class Player :
 
     def user_operatable(self, game: "Game") -> bool :
         return self.controllable
+
+    def count_tools(self, toolid: Optional[int]) -> int :
+        """
+        统计玩家有多少指定的道具或空道具槽位。
+
+        :param toolid: 要统计的道具ID。为None时统计空道具槽位。
+        :return: 玩家的指定道具或空槽位的数量。
+        """
+
+        res: int = 0
+        for slot in self.slots :
+            if slot[1] == toolid :
+                res += 1
+        return res
 
 @no_type_check
 class Game :
@@ -233,6 +254,9 @@ class Game :
             self.turn_orders.append(0)
 
     @property
+    @deprecated(
+        "将在 0.5.0-a1 移除。请使用 self.players[...].tools_sending_weight。"
+    )
     def tools_sending_weight(self) -> Dict[
         int, Union[int, Callable[["Game"], int]]
     ] :
@@ -242,6 +266,8 @@ class Game :
 
         return self.players[self.turn_orders[0]].tools_sending_weight
     @tools_sending_weight.setter
+    @deprecated("将在 0.5.0-a1 移除。"
+                "请使用 self.players[...].tools_sending_weight = value。")
     def tools_sending_weight(self, value: Dict[
         int, Union[int, Callable[["Game"], int]]
     ]) -> None :
@@ -252,6 +278,8 @@ class Game :
         self.players[self.turn_orders[0]].tools_sending_weight = value
 
     @property
+    @deprecated("将在 0.5.0-a1 移除。"
+                "请使用 self.players[...].tools_sending_limit_in_game。")
     def tools_sending_limit_in_game(self) -> Dict[int, int] :
         """
         已弃用,将在 0.5.0-a1 移除。请使用 self.players[...].tools_sending_limit_in_game。
@@ -259,6 +287,10 @@ class Game :
 
         return self.players[self.turn_orders[0]].tools_sending_limit_in_game
     @tools_sending_limit_in_game.setter
+    @deprecated(
+        "将在 0.5.0-a1 移除。"
+        "请使用 self.players[...].tools_sending_limit_in_game = value。"
+    )
     def tools_sending_limit_in_game(self, value: Dict[int, int]) -> None :
         """
         已弃用,将在 0.5.0-a1 移除。请使用 self.players[...].tools_sending_limit_in_game = value。
@@ -267,6 +299,8 @@ class Game :
         self.players[self.turn_orders[0]].tools_sending_limit_in_game = value
 
     @property
+    @deprecated("将在 0.5.0-a1 移除。"
+                "请使用 self.players[...].tools_sending_limit_in_slot。")
     def tools_sending_limit_in_slot(self) -> Dict[
         int, Union[int, Callable[["Game"], int]]
     ] :
@@ -276,6 +310,10 @@ class Game :
 
         return self.players[self.turn_orders[0]].tools_sending_limit_in_slot
     @tools_sending_limit_in_slot.setter
+    @deprecated(
+        "将在 0.5.0-a1 移除。"
+        "请使用 self.players[...].tools_sending_limit_in_slot = value。"
+    )
     def tools_sending_limit_in_slot(self, value: Dict[
         int, Union[int, Callable[["Game"], int]]
     ]) -> None :
@@ -286,6 +324,9 @@ class Game :
         self.players[self.turn_orders[0]].tools_sending_limit_in_slot = value
 
     @property
+    @deprecated(
+        "将在 0.5.0-a1 移除。请使用 self.players[...].slot_sending_weight。"
+    )
     def slot_sending_weight(self) -> Dict[
         int, Union[int, Callable[["Game"], int]]
     ] :
@@ -295,6 +336,8 @@ class Game :
 
         return self.players[self.turn_orders[0]].slot_sending_weight
     @slot_sending_weight.setter
+    @deprecated("已弃用,将在 0.5.0-a1 移除。"
+                "请使用 self.players[...].slot_sending_weight = value。")
     def slot_sending_weight(self, value: Dict[
         int, Union[int, Callable[["Game"], int]]
     ]) -> None :
@@ -350,15 +393,22 @@ class Game :
             return None
         return bullets_ref
 
-    def has_tools(self, toolid: Optional[int] = None) -> bool :
+    def has_tools(self, toolid: Optional[int] = None,
+                  player: Optional[Player] = None) -> bool :
         """
         指示该游戏是否有任何道具。
 
         :return: 一个bool值,若有道具则为True。
         """
 
-        for i in self.players.values() :
-            for k, v in i.tools_sending_weight.items() :
+        if player is None :
+            for i in self.players.values() :
+                for k, v in i.tools_sending_weight.items() :
+                    if (v if isinstance(v, int) else v(self)) > 0 and \
+                       (toolid is None or toolid == k) :
+                        return True
+        else :
+            for k, v in player.tools_sending_weight.items() :
                 if (v if isinstance(v, int) else v(self)) > 0 and \
                    (toolid is None or toolid == k) :
                     return True
@@ -372,11 +422,7 @@ class Game :
         :return: “你”的指定道具或空槽位的数量。
         """
 
-        res: int = 0
-        for r_slot in self.r_slots :
-            if r_slot[1] == toolid :
-                res += 1
-        return res
+        return self.players[0].count_tools(toolid)
 
     def count_tools_of_e(self, toolid: Optional[int]) -> int :
         """
@@ -386,11 +432,28 @@ class Game :
         :return: 恶魔的指定道具或空槽位的数量。
         """
 
-        res: int = 0
-        for e_slot in self.e_slots :
-            if e_slot[1] == toolid :
-                res += 1
-        return res
+        return self.players[1].count_tools(toolid)
+
+    def random_tool_to_player(self, player: Player) -> int :
+        randomlist: List[int] = []
+        for k, v in player.tools_sending_weight.items() :
+            for _ in range(v if isinstance(v, int) else v(self)) :
+                randomlist.append(k)
+        while 1 :
+            randomid: int = choice(randomlist)
+            tool_sending_limit_in_slot: int = \
+            player.tools_sending_limit_in_slot[randomid] if \
+            isinstance(
+                player.tools_sending_limit_in_slot[randomid], int
+            ) else player.tools_sending_limit_in_slot[randomid](self)
+            if (randomid not in player.sending_total or
+                player.tools_sending_limit_in_game[randomid] <= 0 or
+                player.sending_total[randomid] <
+                player.tools_sending_limit_in_game[randomid]) and \
+               (tool_sending_limit_in_slot <= 0 or
+                player.count_tools(randomid) < tool_sending_limit_in_slot) :
+                return randomid
+        raise AssertionError
 
     def random_tool_to_r(self) -> int :
         """
@@ -399,25 +462,7 @@ class Game :
         :return: 随机道具的ID。
         """
 
-        randomlist: List[int] = []
-        for k, v in self.players[0].tools_sending_weight.items() :
-            for _ in range(v if isinstance(v, int) else v(self)) :
-                randomlist.append(k)
-        while 1 :
-            randomid: int = choice(randomlist)
-            tool_sending_limit_in_slot: int = \
-            self.players[0].tools_sending_limit_in_slot[randomid] if \
-            isinstance(
-                self.players[0].tools_sending_limit_in_slot[randomid], int
-            ) else self.players[0].tools_sending_limit_in_slot[randomid](self)
-            if (randomid not in self.r_sending_total or
-                self.players[0].tools_sending_limit_in_game[randomid] <= 0 or
-                self.r_sending_total[randomid] <
-                self.players[0].tools_sending_limit_in_game[randomid]) and \
-               (tool_sending_limit_in_slot <= 0 or
-                self.count_tools_of_r(randomid) < tool_sending_limit_in_slot) :
-                return randomid
-        raise AssertionError
+        return self.random_tool_to_player(self.players[0])
 
     def random_tool_to_e(self) -> int :
         """
@@ -426,25 +471,37 @@ class Game :
         :return: 随机道具的ID。
         """
 
-        randomlist: List[int] = []
-        for k, v in self.players[1].tools_sending_weight.items() :
-            for _ in range(v if isinstance(v, int) else v(self)) :
-                randomlist.append(k)
-        while 1 :
-            randomid: int = choice(randomlist)
-            tool_sending_limit_in_slot: int = \
-            self.players[1].tools_sending_limit_in_slot[randomid] if \
-            isinstance(
-                self.players[1].tools_sending_limit_in_slot[randomid], int
-            ) else self.players[1].tools_sending_limit_in_slot[randomid](self)
-            if (randomid not in self.e_sending_total or
-                self.players[1].tools_sending_limit_in_game[randomid] <= 0 or
-                self.e_sending_total[randomid] <
-                self.players[1].tools_sending_limit_in_game[randomid]) and \
-               (tool_sending_limit_in_slot <= 0 or
-                self.count_tools_of_e(randomid) < tool_sending_limit_in_slot) :
-                return randomid
-        raise AssertionError
+        return self.random_tool_to_player(self.players[1])
+
+    def send_tools(self, player: Player, max_amount: int = 2) -> int :
+        counting_empty_slots_index: List[int] = []
+        for slot_id in range(len(player.slots)) :
+            if player.slots[slot_id][1] is None :
+                counting_empty_slots_index.append(slot_id)
+        if counting_empty_slots_index :
+            randomtool: int
+            if len(counting_empty_slots_index) == 1 :
+                if randint(0, 3) :
+                    randomtool = self.random_tool_to_player(player)
+                    player.sending_total.setdefault(randomtool, 0)
+                    player.sending_total[randomtool] += 1
+                    player.slots[counting_empty_slots_index[0]] = \
+                    (player.slots[counting_empty_slots_index[0]][0],
+                     randomtool)
+                    return 1
+                return 0
+            else :
+                r: int = min(max_amount-(not randint(0, 4)),
+                             len(counting_empty_slots_index))
+                for i in range(r) :
+                    randomtool = self.random_tool_to_player(player)
+                    player.sending_total.setdefault(randomtool, 0)
+                    player.sending_total[randomtool] += 1
+                    player.slots[counting_empty_slots_index[i]] = \
+                    (player.slots[counting_empty_slots_index[i]][0],
+                     randomtool)
+                return r
+        return 0
 
     def send_tools_to_r(self, max_amount: int = 2) -> int :
         """
@@ -453,34 +510,7 @@ class Game :
         :return: 实际发放道具的数量。
         """
 
-        counting_empty_slots_index: List[int] = []
-        for slot_id in range(len(self.r_slots)) :
-            if self.r_slots[slot_id][1] is None :
-                counting_empty_slots_index.append(slot_id)
-        if counting_empty_slots_index :
-            randomtool: int
-            if len(counting_empty_slots_index) == 1 :
-                if randint(0, 3) :
-                    randomtool = self.random_tool_to_r()
-                    self.r_sending_total.setdefault(randomtool, 0)
-                    self.r_sending_total[randomtool] += 1
-                    self.r_slots[counting_empty_slots_index[0]] = \
-                    (self.r_slots[counting_empty_slots_index[0]][0],
-                     randomtool)
-                    return 1
-                return 0
-            else :
-                r: int = min(max_amount-(not randint(0, 4)),
-                             len(counting_empty_slots_index))
-                for i in range(r) :
-                    randomtool = self.random_tool_to_r()
-                    self.r_sending_total.setdefault(randomtool, 0)
-                    self.r_sending_total[randomtool] += 1
-                    self.r_slots[counting_empty_slots_index[i]] = \
-                    (self.r_slots[counting_empty_slots_index[i]][0],
-                     randomtool)
-                return r
-        return 0
+        return self.send_tools(self.players[0], max_amount)
 
     def send_tools_to_e(self, max_amount: int = 2) -> int :
         """
@@ -489,34 +519,7 @@ class Game :
         :return: 实际发放道具的数量。
         """
 
-        counting_empty_slots_index: List[int] = []
-        for slot_id in range(len(self.e_slots)) :
-            if self.e_slots[slot_id][1] is None :
-                counting_empty_slots_index.append(slot_id)
-        if counting_empty_slots_index :
-            randomtool: int
-            if len(counting_empty_slots_index) == 1 :
-                if randint(0, 3) :
-                    randomtool = self.random_tool_to_e()
-                    self.e_sending_total.setdefault(randomtool, 0)
-                    self.e_sending_total[randomtool] += 1
-                    self.e_slots[counting_empty_slots_index[0]] = \
-                    (self.e_slots[counting_empty_slots_index[0]][0],
-                     randomtool)
-                    return 1
-                return 0
-            else :
-                r: int = min(max_amount-(not randint(0, 4)),
-                             len(counting_empty_slots_index))
-                for i in range(r) :
-                    randomtool = self.random_tool_to_e()
-                    self.e_sending_total.setdefault(randomtool, 0)
-                    self.e_sending_total[randomtool] += 1
-                    self.e_slots[counting_empty_slots_index[i]] = \
-                    (self.e_slots[counting_empty_slots_index[i]][0],
-                     randomtool)
-                return r
-        return 0
+        return self.send_tools(self.players[1], max_amount)
 
     def run_turn(self) -> None :
         self.turn_orders.append(self.turn_orders[0])
