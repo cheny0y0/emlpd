@@ -1,3 +1,19 @@
+# emlpd
+# Copyright (C) 2024-2025  REGE
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 from math import ceil
 from random import choice, randint, random
 import struct
@@ -8,7 +24,7 @@ __all__ = ["VER", "VER_STRING", "Slot", "ShootResult", "ShootResultAnalyzer",
            "Game", "GameSave", "Player"]
 
 VER: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]] = \
-(0, 4, 2, "a", 3)
+(0, 4, 2, "a", 4)
 
 VER_STRING: str = \
 ("{0}.{1}.{2}-{3}{4}" if len(VER) > 4 else "{0}.{1}.{2}").format(*VER)
@@ -83,13 +99,6 @@ class Game :
     players: Dict[int, Player]
     turn_orders: List[int]
     tools: Dict[int, Tuple[str, Optional[str]]]
-    tools_sending_weight: Dict[
-        int, Union[int, Callable[["Game"], int]]
-    ] # deprecated
-    tools_sending_limit_in_game: Dict[int, int] # deprecated
-    tools_sending_limit_in_slot: Dict[
-        int, Union[int, Callable[["Game"], int]]
-    ] # deprecated
     slots_sharing: Optional[Tuple[bool, int, List[Slot]]]
     max_bullets: int
     min_bullets: int
@@ -100,9 +109,6 @@ class Game :
     rel_turn_lap: int # deprecated
     extra_bullets: Tuple[Optional[List[bool]], Optional[List[bool]],
                          Optional[List[bool]]]
-    slot_sending_weight: Dict[
-        int, Union[int, Callable[["Game"], int]]
-    ] # deprecated
     subgame: Optional["Game"]
 
     def __init__(
@@ -165,16 +171,10 @@ class Game :
         self.min_false_bullets = min_false_bullets
         self.max_true_bullets = max_true_bullets
         self.tools = tools
-        self.tools_sending_weight = tools_sending_weight
-        self.tools_sending_limit_in_game = tools_sending_limit_in_game
-        self.tools_sending_limit_in_slot = tools_sending_limit_in_slot
         self.slots_sharing = None
         self.turn_orders = [0, 1] if firsthand else [1, 0]
         self.rel_turn_lap = 0
         self.extra_bullets = (None, None, None)
-        self.slot_sending_weight = {1: 5, 2: 6, 3: 6, 4: 2, 5: 1} \
-                                   if slot_sending_weight is None \
-                                   else slot_sending_weight.copy()
         self.subgame = None
 
     @property
@@ -232,6 +232,78 @@ class Game :
             self.turn_orders.remove(0)
             self.turn_orders.append(0)
 
+    @property
+    def tools_sending_weight(self) -> Dict[
+        int, Union[int, Callable[["Game"], int]]
+    ] :
+        """
+        已弃用,将在 0.5.0-a1 移除。请使用 self.players[...].tools_sending_weight。
+        """
+
+        return self.players[self.turn_orders[0]].tools_sending_weight
+    @tools_sending_weight.setter
+    def tools_sending_weight(self, value: Dict[
+        int, Union[int, Callable[["Game"], int]]
+    ]) -> None :
+        """
+        已弃用,将在 0.5.0-a1 移除。请使用 self.players[...].tools_sending_weight = value。
+        """
+
+        self.players[self.turn_orders[0]].tools_sending_weight = value
+
+    @property
+    def tools_sending_limit_in_game(self) -> Dict[int, int] :
+        """
+        已弃用,将在 0.5.0-a1 移除。请使用 self.players[...].tools_sending_limit_in_game。
+        """
+
+        return self.players[self.turn_orders[0]].tools_sending_limit_in_game
+    @tools_sending_limit_in_game.setter
+    def tools_sending_limit_in_game(self, value: Dict[int, int]) -> None :
+        """
+        已弃用,将在 0.5.0-a1 移除。请使用 self.players[...].tools_sending_limit_in_game = value。
+        """
+
+        self.players[self.turn_orders[0]].tools_sending_limit_in_game = value
+
+    @property
+    def tools_sending_limit_in_slot(self) -> Dict[
+        int, Union[int, Callable[["Game"], int]]
+    ] :
+        """
+        已弃用,将在 0.5.0-a1 移除。请使用 self.players[...].tools_sending_limit_in_slot。
+        """
+
+        return self.players[self.turn_orders[0]].tools_sending_limit_in_slot
+    @tools_sending_limit_in_slot.setter
+    def tools_sending_limit_in_slot(self, value: Dict[
+        int, Union[int, Callable[["Game"], int]]
+    ]) -> None :
+        """
+        已弃用,将在 0.5.0-a1 移除。请使用 self.players[...].tools_sending_limit_in_slot = value。
+        """
+
+        self.players[self.turn_orders[0]].tools_sending_limit_in_slot = value
+
+    @property
+    def slot_sending_weight(self) -> Dict[
+        int, Union[int, Callable[["Game"], int]]
+    ] :
+        """
+        已弃用,将在 0.5.0-a1 移除。请使用 self.players[...].slot_sending_weight。
+        """
+
+        return self.players[self.turn_orders[0]].slot_sending_weight
+    @slot_sending_weight.setter
+    def slot_sending_weight(self, value: Dict[
+        int, Union[int, Callable[["Game"], int]]
+    ]) -> None :
+        """
+        已弃用,将在 0.5.0-a1 移除。请使用 self.players[...].slot_sending_weight = value。
+        """
+
+        self.players[self.turn_orders[0]].slot_sending_weight = value
+
     def gen_bullets(self, bullets_id: Optional[int] = None) -> \
         Optional[List[bool]] :
         """
@@ -285,10 +357,11 @@ class Game :
         :return: 一个bool值,若有道具则为True。
         """
 
-        for k, v in self.tools_sending_weight.items() :
-            if (v if isinstance(v, int) else v(self)) > 0 and \
-               (toolid is None or toolid == k) :
-                return True
+        for i in self.players.values() :
+            for k, v in i.tools_sending_weight.items() :
+                if (v if isinstance(v, int) else v(self)) > 0 and \
+                   (toolid is None or toolid == k) :
+                    return True
         return False
 
     def count_tools_of_r(self, toolid: Optional[int]) -> int :

@@ -238,6 +238,9 @@ stage battle ends.
 Make the explosion exponent 2/3 of what it was(floored) and tell you
 “你维修了一下枪筒”. If the explosion exponent is less than or equal to 0, this
 tool will not be used.
+##### Tool 34: Kōng Shí Fēn Lí
+For each clip, move all true bullets in it to the outermost place, all false
+bullets in it to the innermost place and prompt “弹夹进行了空实分离”.
 ### Game Mode Introduction
 #### 1. Pǔ Tōng Mó Shì
 Only 1 period.  

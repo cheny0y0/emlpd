@@ -1,3 +1,19 @@
+# emlpd
+# Copyright (C) 2024-2025  REGE
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 from fractions import Fraction
 from random import randint
 from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple, \
@@ -41,7 +57,8 @@ GENERIC_TOOLS: Tuple[Tuple[str, Optional[str]], ...] = (
     ("所有或一无所有", "一夜暴富?一夜归零?"), # ID30 TODO
     ("超级大木锤", "整回合都是我的了"), # ID31
     ("不死不休", "打上擂台"), # ID32
-    ("枪筒维修", "降低开枪的炸膛概率") # ID33
+    ("枪筒维修", "降低开枪的炸膛概率"), # ID33
+    ("空实分离", "实弹往前,空弹在后")
 )
 
 def gen_tools_from_generic_tools(toolids: Iterable[int]) -> \
@@ -338,7 +355,8 @@ normal_mode: NormalGame = NormalGame(
         30: 1,
         31: 1,
         32: 1,
-        33: 2
+        33: 2,
+        34: 3
     },
     {
         0: 0,
@@ -369,11 +387,12 @@ normal_mode: NormalGame = NormalGame(
         26: 0,
         27: 0,
         28: 0,
-        29: 2,
+        29: 1,
         30: 8,
         31: 32,
         32: 5,
-        33: 0
+        33: 0,
+        34: 0
     },
     {
         0: 0,
@@ -408,7 +427,8 @@ normal_mode: NormalGame = NormalGame(
         30: 4,
         31: 16,
         32: 3,
-        33: 3
+        33: 3,
+        34: 0
     },
     8,
     True
@@ -454,7 +474,8 @@ infinite_mode: NormalGame = NormalGame(
         29: 1,
         30: 1,
         31: 2,
-        33: 2
+        33: 2,
+        34: 3
     },
     {
         0: 0,
@@ -483,10 +504,11 @@ infinite_mode: NormalGame = NormalGame(
         26: 0,
         27: 0,
         28: 0,
-        29: 2,
+        29: 1,
         30: 8,
         31: 32,
-        33: 0
+        33: 0,
+        34: 0
     },
     {
         0: 0,
@@ -518,7 +540,8 @@ infinite_mode: NormalGame = NormalGame(
         29: 0,
         30: 4,
         31: 16,
-        33: 3
+        33: 3,
+        34: 0
     },
     9,
     True
@@ -637,7 +660,8 @@ class InfiniteMode2 :
                 30: 1,
                 31: 3,
                 32: 1,
-                33: 2
+                33: 2,
+                34: 3
             },
             {
                 0: 0,
@@ -668,11 +692,12 @@ class InfiniteMode2 :
                 26: 0,
                 27: 0,
                 28: 0,
-                29: 2,
+                29: 1,
                 30: 8,
                 31: 32,
                 32: 5,
-                33: 0
+                33: 0,
+                34: 0
             },
             {
                 0: 0,
@@ -707,7 +732,8 @@ class InfiniteMode2 :
                 30: 4,
                 31: 16,
                 32: 3,
-                33: 3
+                33: 3,
+                34: 0
             },
             9,
             True
@@ -729,7 +755,7 @@ combo_party: NormalGame = NormalGame(
     18,
     40,
     200,
-    gen_tools_from_generic_tools((0, 1, 2, 9, 15, 17, 18, 21, 27, 28, 29)),
+    gen_tools_from_generic_tools((0, 1, 2, 9, 15, 17, 18, 21, 27, 28, 29, 34)),
     {
         0: 2,
         1: 1,
@@ -741,7 +767,8 @@ combo_party: NormalGame = NormalGame(
         21: 4,
         27: 3,
         28: 5,
-        29: 1
+        29: 1,
+        34: 5
     },
     {
         0: 0,
@@ -754,7 +781,8 @@ combo_party: NormalGame = NormalGame(
         21: 0,
         27: 0,
         28: 0,
-        29: 2
+        29: 1,
+        34: 0
     },
     {
         0: 0,
@@ -767,7 +795,8 @@ combo_party: NormalGame = NormalGame(
         21: 0,
         27: 0,
         28: 0,
-        29: 1
+        29: 1,
+        34: 0
     },
     12,
     True

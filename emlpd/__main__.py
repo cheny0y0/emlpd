@@ -1,3 +1,19 @@
+# emlpd
+# Copyright (C) 2024-2025  REGE
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 from datetime import date
 from fractions import Fraction
 from math import ceil
@@ -8,6 +24,11 @@ from typing import Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING
 
 from .gameapi import Game, GameSave, Player, ShootResult, Slot, VER_STRING
 from .gameinst import GAMEMODE_SET, NormalGame, NormalPlayer, StageGame
+
+print("""emlpd  Copyright (C) 2024-2025  REGE
+This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
+This is free software, and you are welcome to redistribute it
+under certain conditions; type `show c' for details.""")
 
 gamesave: GameSave = GameSave()
 gamemode_i: int = 1
@@ -69,6 +90,72 @@ while 1 :
         if gamemode.strip() == "stat" :
             for k, v in gamesave.__dict__.items() :
                 print(k, v, sep=": ")
+        elif gamemode.strip() == "show w" :
+            print("""\
+THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
+IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ALL NECESSARY SERVICING, REPAIR OR CORRECTION.""")
+        elif gamemode.strip() == "show c" :
+            print("""\
+  The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works.  By contrast,
+the GNU General Public License is intended to guarantee your freedom to
+share and change all versions of a program--to make sure it remains free
+software for all its users.  We, the Free Software Foundation, use the
+GNU General Public License for most of our software; it applies also to
+any other work released this way by its authors.  You can apply it to
+your programs, too.
+
+  When we speak of free software, we are referring to freedom, not
+price.  Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of free software (and charge for
+them if you wish), that you receive source code or can get it if you
+want it, that you can change the software or use pieces of it in new
+free programs, and that you know you can do these things.
+
+  To protect your rights, we need to prevent others from denying you
+these rights or asking you to surrender the rights.  Therefore, you have
+certain responsibilities if you distribute copies of the software, or if
+you modify it: responsibilities to respect the freedom of others.
+
+  For example, if you distribute copies of such a program, whether
+gratis or for a fee, you must pass on to the recipients the same
+freedoms that you received.  You must make sure that they, too, receive
+or can get the source code.  And you must show them these terms so they
+know their rights.
+
+  Developers that use the GNU GPL protect your rights with two steps:
+(1) assert copyright on the software, and (2) offer you this License
+giving you legal permission to copy, distribute and/or modify it.
+
+  For the developers' and authors' protection, the GPL clearly explains
+that there is no warranty for this free software.  For both users' and
+authors' sake, the GPL requires that modified versions be marked as
+changed, so that their problems will not be attributed erroneously to
+authors of previous versions.
+
+  Some devices are designed to deny users access to install or run
+modified versions of the software inside them, although the manufacturer
+can do so.  This is fundamentally incompatible with the aim of
+protecting users' freedom to change the software.  The systematic
+pattern of such abuse occurs in the area of products for individuals to
+use, which is precisely where it is most unacceptable.  Therefore, we
+have designed this version of the GPL to prohibit the practice for those
+products.  If such problems arise substantially in other domains, we
+stand ready to extend this provision to those domains in future versions
+of the GPL, as needed to protect the freedom of users.
+
+  Finally, every program is threatened constantly by software patents.
+States should not allow patents to restrict development and use of
+software on general-purpose computers, but in those that do, we wish to
+avoid the special danger that patents applied to a free program could
+make it effectively proprietary.  To prevent this, the GPL assures that
+patents cannot be used to render the program non-free.""")
     else :
         if gamemode_i in GAMEMODE_SET :
             break
@@ -216,10 +303,10 @@ while 1 :
     if nightmare :
         filtered: List[int] = []
         for i in filter(lambda key: (
-            chosen_game.slot_sending_weight[key] if isinstance(
-                chosen_game.slot_sending_weight[key], int
-            ) else chosen_game.slot_sending_weight[key](chosen_game)
-        ) > 0, chosen_game.slot_sending_weight) :
+            chosen_game.players[1].slot_sending_weight[key] if isinstance(
+                chosen_game.players[1].slot_sending_weight[key], int
+            ) else chosen_game.players[1].slot_sending_weight[key](chosen_game)
+        ) > 0, chosen_game.players[1].slot_sending_weight) :
             filtered.append(i)
         e_new_slot = chosen_game.send_e_slot(1., {
             0 if min(filtered) <= 0 else max(filtered): 1
@@ -992,6 +1079,24 @@ while 1 :
                                 print("你维修了一下枪筒")
                             else :
                                 used = False
+                        elif to_use == 34 :
+                            player.slots[tools_existence[34]] = \
+                            (player.slots[tools_existence[34]][0], None)
+                            false_count: int = 0
+                            while False in chosen_game.bullets :
+                                false_count += 1
+                                chosen_game.bullets.remove(False)
+                            for _ in range(false_count) :
+                                chosen_game.bullets.append(False)
+                            for i in chosen_game.extra_bullets :
+                                if i is not None :
+                                    false_count = 0
+                                    while False in i :
+                                        false_count += 1
+                                        i.remove(False)
+                                    for _ in range(false_count) :
+                                        i.append(False)
+                            print("弹夹进行了空实分离")
                         if used :
                             print("-1 道具", to_use)
                         if not chosen_game.bullets :
@@ -1916,6 +2021,25 @@ while 1 :
                             Fraction(2, 3)*chosen_game.explosion_exponent
                         )
                         print("恶魔维修了一下枪筒")
+                elif slot[1] == 34 :
+                    will_use = nightmare or not randint(0, 4)
+                    if will_use :
+                        player.slots[slotid] = (slot[0], None)
+                        false_count: int = 0
+                        while False in chosen_game.bullets :
+                            false_count += 1
+                            chosen_game.bullets.remove(False)
+                        for _ in range(false_count) :
+                            chosen_game.bullets.append(False)
+                        for i in chosen_game.extra_bullets :
+                            if i is not None :
+                                false_count = 0
+                                while False in i :
+                                    false_count += 1
+                                    i.remove(False)
+                                for _ in range(false_count) :
+                                    i.append(False)
+                        print("弹夹进行了空实分离")
             if not chosen_game.bullets :
                 break
             round_turn_count += 1
