@@ -27,7 +27,7 @@ GENERIC_TOOLS: Tuple[Tuple[str, Optional[str]], ...] = (
     ("良枪(一)", "保证向自己开枪不会炸膛(无提示)"), # ID0
     ("良枪(二)", "保证向对方开枪不会炸膛(无提示)"), # ID1
     ("小刀", "非常不讲武德的提升1点伤害(无上限)"), # ID2
-    ("开挂(一)", "将当前弹壳里的1发子弹退出"), # ID3
+    ("开挂(一)", "将当前弹夹里的1发子弹退出"), # ID3
     ("超级小木锤", "将对方敲晕1轮"), # ID4
     ("道德的崇高赞许", "回复1点生命值"), # ID5
     ("透视镜", "查看当前子弹"), # ID6
@@ -41,7 +41,7 @@ GENERIC_TOOLS: Tuple[Tuple[str, Optional[str]], ...] = (
     ("接弹套", "概率接住对面射来的子弹并重新入膛(无提示)"), # ID14
     ("填实", "随机把空弹变为实弹"), # ID15
     ("重整弹药", "给你重新放入弹药的机会"), # ID16
-    ("双发射手", "向对面开枪一次可射出多颗子弹"), # ID17
+    ("双发射手", "向对面开枪一次可射出多发子弹"), # ID17
     ("连发射手", "向对面开枪一次有概率清空弹夹"), # ID18
     ("硬币", "可以给你道具......"), # ID19
     ("燃烧弹", "让射出的子弹带着火焰"), # ID20 TODO
@@ -58,7 +58,8 @@ GENERIC_TOOLS: Tuple[Tuple[str, Optional[str]], ...] = (
     ("超级大木锤", "整回合都是我的了"), # ID31
     ("不死不休", "打上擂台"), # ID32
     ("枪筒维修", "降低开枪的炸膛概率"), # ID33
-    ("空实分离", "实弹往前,空弹在后")
+    ("空实分离", "实弹往前,空弹在后"), # ID34
+    ("弹夹合并", "一条龙服务(指子弹)") # ID35
 )
 
 def gen_tools_from_generic_tools(toolids: Iterable[int]) -> \
@@ -356,7 +357,10 @@ normal_mode: NormalGame = NormalGame(
         31: 1,
         32: 1,
         33: 2,
-        34: 3
+        34: 3,
+        35: lambda game: (0 if game.extra_bullets == (None, None, None) else (
+            4 if game.extra_bullets.count(None) else 8
+        ))
     },
     {
         0: 0,
@@ -392,7 +396,8 @@ normal_mode: NormalGame = NormalGame(
         31: 32,
         32: 5,
         33: 0,
-        34: 0
+        34: 0,
+        35: 0
     },
     {
         0: 0,
@@ -428,7 +433,8 @@ normal_mode: NormalGame = NormalGame(
         31: 16,
         32: 3,
         33: 3,
-        34: 0
+        34: 0,
+        35: 0
     },
     8,
     True
@@ -475,7 +481,10 @@ infinite_mode: NormalGame = NormalGame(
         30: 1,
         31: 2,
         33: 2,
-        34: 3
+        34: 3,
+        35: lambda game: (0 if game.extra_bullets == (None, None, None) else (
+            4 if game.extra_bullets.count(None) else 8
+        ))
     },
     {
         0: 0,
@@ -508,7 +517,8 @@ infinite_mode: NormalGame = NormalGame(
         30: 8,
         31: 32,
         33: 0,
-        34: 0
+        34: 0,
+        35: 0
     },
     {
         0: 0,
@@ -541,7 +551,8 @@ infinite_mode: NormalGame = NormalGame(
         30: 4,
         31: 16,
         33: 3,
-        34: 0
+        34: 0,
+        35: 0
     },
     9,
     True
@@ -661,7 +672,12 @@ class InfiniteMode2 :
                 31: 3,
                 32: 1,
                 33: 2,
-                34: 3
+                34: 3,
+                35: lambda game: (
+                    0 if game.extra_bullets == (None, None, None) else (
+                        4 if game.extra_bullets.count(None) else 8
+                    )
+                )
             },
             {
                 0: 0,
@@ -697,7 +713,8 @@ class InfiniteMode2 :
                 31: 32,
                 32: 5,
                 33: 0,
-                34: 0
+                34: 0,
+                35: 0
             },
             {
                 0: 0,
@@ -733,7 +750,8 @@ class InfiniteMode2 :
                 31: 16,
                 32: 3,
                 33: 3,
-                34: 0
+                34: 0,
+                35: 0
             },
             9,
             True
@@ -755,7 +773,9 @@ combo_party: NormalGame = NormalGame(
     18,
     40,
     200,
-    gen_tools_from_generic_tools((0, 1, 2, 9, 15, 17, 18, 21, 27, 28, 29, 34)),
+    gen_tools_from_generic_tools((
+        0, 1, 2, 9, 15, 17, 18, 21, 27, 28, 29, 34, 35
+    )),
     {
         0: 2,
         1: 1,
@@ -768,7 +788,10 @@ combo_party: NormalGame = NormalGame(
         27: 3,
         28: 5,
         29: 1,
-        34: 5
+        34: 5,
+        35: lambda game: (0 if game.extra_bullets == (None, None, None) else (
+            4 if game.extra_bullets.count(None) else 8
+        ))
     },
     {
         0: 0,
@@ -782,7 +805,8 @@ combo_party: NormalGame = NormalGame(
         27: 0,
         28: 0,
         29: 1,
-        34: 0
+        34: 0,
+        35: 0
     },
     {
         0: 0,
@@ -796,7 +820,8 @@ combo_party: NormalGame = NormalGame(
         27: 0,
         28: 0,
         29: 1,
-        34: 0
+        34: 0,
+        35: 0
     },
     12,
     True

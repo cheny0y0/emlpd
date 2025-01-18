@@ -20,7 +20,7 @@ from math import ceil
 from random import choice, randint, random, shuffle
 from sys import argv
 from time import sleep, time
-from typing import Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, Iterator, List, Optional, TYPE_CHECKING, Tuple
 
 from .gameapi import Game, GameSave, Player, ShootResult, Slot, VER_STRING
 from .gameinst import GAMEMODE_SET, NormalGame, NormalPlayer, StageGame
@@ -1097,6 +1097,17 @@ while 1 :
                                     for _ in range(false_count) :
                                         i.append(False)
                             print("弹夹进行了空实分离")
+                        elif to_use == 35 :
+                            if any(chosen_game.extra_bullets) :
+                                player.slots[tools_existence[35]] = \
+                                (player.slots[tools_existence[35]][0], None)
+                                for i in chosen_game.extra_bullets :
+                                    if i :
+                                        chosen_game.bullets.extend(i)
+                                        i.clear()
+                                print("你合并了一下弹夹")
+                            else :
+                                used = False
                         if used :
                             print("-1 道具", to_use)
                         if not chosen_game.bullets :
@@ -2040,6 +2051,16 @@ while 1 :
                                 for _ in range(false_count) :
                                     i.append(False)
                         print("弹夹进行了空实分离")
+                elif slot[1] == 35 :
+                    will_use = \
+                    any(chosen_game.extra_bullets) and not randint(0, 4)
+                    if will_use :
+                        player.slots[slotid] = (slot[0], None)
+                        for i in chosen_game.extra_bullets :
+                            if i :
+                                chosen_game.bullets.extend(i)
+                                i.clear()
+                        print("恶魔合并了一下弹夹")
             if not chosen_game.bullets :
                 break
             round_turn_count += 1

@@ -241,6 +241,10 @@ tool will not be used.
 ##### Tool 34: Kōng Shí Fēn Lí
 For each clip, move all true bullets in it to the outermost place, all false
 bullets in it to the innermost place and prompt “弹夹进行了空实分离”.
+##### Tool 35: Dàn Jiá Hé Bìng
+Move the bullets in each extra clip (0→1→2 order) to the end of the main clip
+in their original order, and prompt “你合并了一下弹夹”. If there are no extra
+clips or no bullets in all extra clips, this tool will not be used.
 ### Game Mode Introduction
 #### 1. Pǔ Tōng Mó Shì
 Only 1 period.  
@@ -273,8 +277,8 @@ Each side has 9 permanent slots.
 #### 6. Lián Shè Pài Duì
 Only 1 period.  
 Your and the Evil's initial HP respectively are 40 and 200.  
-Only tool ID0, ID1, ID2, ID9, ID15, ID17, ID18, ID21, ID27, ID28 and ID29 will
-be sent.  
+Only tool ID0, ID1, ID2, ID9, ID15, ID17, ID18, ID21, ID27, ID28, ID29, ID34
+and ID35 will be sent.  
 Each side has 12 permanent slots.
 #### 7. Zhà Táng Cè Shì
 Only 1 period.  
