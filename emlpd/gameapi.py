@@ -1,13 +1,14 @@
 from math import ceil
 from random import choice, randint, random
 import struct
-from typing import Callable, Dict, List, Optional, Tuple, no_type_check, Union, Iterable
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union, \
+                   no_type_check
 
 __all__ = ["VER", "VER_STRING", "Slot", "ShootResult", "ShootResultAnalyzer",
            "Game", "GameSave", "Player"]
 
 VER: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]] = \
-(0, 4, 2, "a", 2)
+(0, 4, 2, "a", 3)
 
 VER_STRING: str = \
 ("{0}.{1}.{2}-{3}{4}" if len(VER) > 4 else "{0}.{1}.{2}").format(*VER)
@@ -624,6 +625,12 @@ class Game :
 
     @property
     def debug_message(self) -> Iterable[Tuple[
+        Iterable[object], Optional[str], Optional[str]
+    ]] :
+        return ()
+
+    @property
+    def round_start_message(self) -> Iterable[Tuple[
         Iterable[object], Optional[str], Optional[str]
     ]] :
         return ()

@@ -70,8 +70,16 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
     round_turn_count = 0
     total_round_count += 1
     gamesave.play_rounds += 1
-    print("当前你的生命值为：", CLASSIC_MODE.r_hp)
-    print("当前恶魔生命值为：", CLASSIC_MODE.e_hp)
+    for i in CLASSIC_MODE.round_start_message :
+        if i[1] is None :
+            if i[2] is None :
+                print(*i[0])
+            else :
+                print(*i[0], end=i[2])
+        elif i[2] is None :
+            print(*i[0], sep=i[1])
+        else :
+            print(*i[0], sep=i[1], end=i[2])
     sleep(1)
     r_send_result: int = CLASSIC_MODE.send_tools_to_r()
     e_send_result: int = CLASSIC_MODE.send_tools_to_e()

@@ -27,7 +27,7 @@ GENERIC_TOOLS: Tuple[Tuple[str, Optional[str]], ...] = (
     ("重整弹药", "给你重新放入弹药的机会"), # ID16
     ("双发射手", "向对面开枪一次可射出多颗子弹"), # ID17
     ("连发射手", "向对面开枪一次有概率清空弹夹"), # ID18
-    ("硬币", "可以给你道具......"), # ID19 TODO
+    ("硬币", "可以给你道具......"), # ID19
     ("燃烧弹", "让射出的子弹带着火焰"), # ID20 TODO
     ("破枪", "让对方开枪时必定炸膛(无提示)"), # ID21
     ("取出子弹", "取出1发由你指定位置的子弹"), # ID22
@@ -276,6 +276,27 @@ class NormalGame(Game) :
         res.append((("当前炸膛指数:", self.explosion_exponent), None, None))
         return res
 
+    @property
+    def round_start_message(self) -> Iterable[Tuple[
+        Iterable[object], Optional[str], Optional[str]
+    ]] :
+        res: List[Tuple[Iterable[object], Optional[str], Optional[str]]] = []
+        for i, player in self.players.items() :
+            if i == 0 and not self.players[1].controllable :
+                res.append((("当前你的生命值为:", player.hp), None, None))
+                if isinstance(player, NormalPlayer) :
+                    res.append((("当前你的负伤数为:", player.hurts),None,None))
+            elif i == 1 and not self.players[1].controllable :
+                res.append((("当前恶魔生命值为:", player.hp), None, None))
+                if isinstance(player, NormalPlayer) :
+                    res.append((("当前恶魔负伤数为:", player.hurts),None,None))
+            else :
+                res.append((("当前玩家", i, "生命值为:", player.hp),None,None))
+                if isinstance(player, NormalPlayer) :
+                    res.append((("当前玩家", i, "负伤数为:", player.hurts),
+                                None, None))
+        return res
+
 normal_mode: NormalGame = NormalGame(
     2,
     8,
@@ -304,6 +325,7 @@ normal_mode: NormalGame = NormalGame(
         16: 10,
         17: 12,
         18: 12,
+        19: 1,
         21: 6,
         22: 6,
         23: 4,
@@ -420,6 +442,7 @@ infinite_mode: NormalGame = NormalGame(
         16: 10,
         17: 12,
         18: 12,
+        19: 1,
         21: 6,
         22: 6,
         23: 4,
@@ -450,7 +473,7 @@ infinite_mode: NormalGame = NormalGame(
         16: 0,
         17: 0,
         18: 0,
-        19: 2,
+        19: 4,
         20: 0,
         21: 0,
         22: 0,
@@ -601,6 +624,7 @@ class InfiniteMode2 :
                 16: 10,
                 17: 12,
                 18: 12,
+                19: 1,
                 21: 6,
                 22: 6,
                 23: 4,
@@ -634,7 +658,7 @@ class InfiniteMode2 :
                 16: 0,
                 17: 0,
                 18: 0,
-                19: 2,
+                19: 4,
                 20: 0,
                 21: 0,
                 22: 0,

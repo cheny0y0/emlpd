@@ -201,3 +201,12 @@ class Game :
             (("当前弹夹:", self.bullets), None, None),
             (("当前相对套轮数:", self.rel_turn_lap), None, None)
         )
+
+    @property
+    def round_start_message(self) -> Iterable[Tuple[
+        Iterable[object], Optional[str], Optional[str]
+    ]] :
+        return (
+            (("当前你的生命值为：", self.r_hp), None, None),
+            (("当前恶魔生命值为：", self.e_hp), None, None)
+        )

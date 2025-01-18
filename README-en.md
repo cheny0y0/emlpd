@@ -163,7 +163,11 @@ stacked combo shooter will become 0; if _s_≤_n_, then your stacked combo
 shooter will decrease by _s_. For each additional shot bullet(by stacked
 repeater), it makes stacked repeater count decrease by 1.
 ##### Tool 19: Yìng Bì
-_Not Implemented Yet_
+This is an OP tool.  
+There is a probability of 50% that you will be given an OP tool that does not
+exceed the sending limit (not counted in the total number of shots given out)
+and a probabulity of 50% that your HP will be halved (floored after halving).
+The two are opposite events.
 ##### Tool 20: Rán Shāo Dàn
 _Not Implemented Yet_
 ##### Tool 21: Pò Qiāng
