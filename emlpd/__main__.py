@@ -1060,19 +1060,78 @@ while 1 :
                                     player.slots[tools_existence[32]] = \
                                     (player.slots[tools_existence[32]][0],
                                      None)
-                                    evil_hp: int = randint(1, victim.hp)
-                                    print("恶魔以", evil_hp, "生命值应战")
-                                    player.hp -= 1
-                                    victim.hp -= evil_hp
-                                    parent_game.subgame = StageGame(
-                                        1, evil_hp, True
-                                    )
-                                    sub_game = parent_game.subgame
-                                    chosen_game = \
-                                    parent_game if sub_game is None \
-                                    else sub_game
-                                    if isinstance(sub_game, StageGame) :
-                                        sub_game.gen_bullets()
+                                    if victim.controllable :
+                                        print(
+                                            "对方以 1 生命值向你发起了擂台战"
+                                        )
+                                        if victim.hp == 1 :
+                                            print("你以仅有的 1 生命值应战")
+                                            print("对方以 1 生命值应战")
+                                            player.hp -= 1
+                                            victim.hp -= 1
+                                            parent_game.subgame = StageGame(
+                                                1, 1, True
+                                            )
+                                            sub_game = parent_game.subgame
+                                            chosen_game = \
+                                            parent_game if sub_game is None \
+                                            else sub_game
+                                            player = chosen_game.players[0]
+                                            victim = chosen_game.players[1]
+                                            if isinstance(sub_game, StageGame) :
+                                                sub_game.gen_bullets()
+                                        else :
+                                            while True :
+                                                try :
+                                                    evil_hp: int = int(input(
+                                                        "请输入你要作为赌注的"
+                                                        "生命值(1~{0})"
+                                                        ":".format(victim.hp)
+                                                    ))
+                                                    if 0 < evil_hp <= \
+                                                       victim.hp :
+                                                        print("对方以",evil_hp,
+                                                              "生命值应战")
+                                                        player.hp -= 1
+                                                        victim.hp -= evil_hp
+                                                        parent_game.subgame = \
+                                                        StageGame(
+                                                            1, evil_hp, True
+                                                        )
+                                                        sub_game = \
+                                                        parent_game.subgame
+                                                        chosen_game = \
+                                                        parent_game \
+                                                        if sub_game is None \
+                                                        else sub_game
+                                                        player = \
+                                                        chosen_game.players[0]
+                                                        victim = \
+                                                        chosen_game.players[1]
+                                                        if isinstance(
+                                                            sub_game, StageGame
+                                                        ) :
+                                                            sub_game\
+                                                            .gen_bullets()
+                                                        break
+                                                except ValueError :
+                                                    pass
+                                    else :
+                                        evil_hp: int = randint(1, victim.hp)
+                                        print("恶魔以", evil_hp, "生命值应战")
+                                        player.hp -= 1
+                                        victim.hp -= evil_hp
+                                        parent_game.subgame = StageGame(
+                                            1, evil_hp, True
+                                        )
+                                        sub_game = parent_game.subgame
+                                        chosen_game = \
+                                        parent_game if sub_game is None \
+                                        else sub_game
+                                        player = chosen_game.players[0]
+                                        victim = chosen_game.players[1]
+                                        if isinstance(sub_game, StageGame) :
+                                            sub_game.gen_bullets()
                                 else :
                                     used = False
                             else :
@@ -1085,20 +1144,89 @@ while 1 :
                                         player.slots[tools_existence[32]] = \
                                         (player.slots[tools_existence[32]][0],
                                          None)
-                                        evil_hp: int = \
-                                        randint(1, victim.hp)
-                                        print("恶魔以", evil_hp, "生命值应战")
-                                        player.hp -= your_hp
-                                        victim.hp -= evil_hp
-                                        parent_game.subgame = StageGame(
-                                            your_hp, evil_hp, True
-                                        )
-                                        sub_game = parent_game.subgame
-                                        chosen_game = \
-                                        parent_game if sub_game is None \
-                                        else sub_game
-                                        if isinstance(sub_game, StageGame) :
-                                            sub_game.gen_bullets()
+                                        if victim.controllable :
+                                            print("对方以", your_hp,
+                                                  "生命值向你发起了擂台战")
+                                            if victim.hp == 1 :
+                                                print(
+                                                    "你以仅有的 1 生命值应战"
+                                                )
+                                                print("对方以 1 生命值应战")
+                                                player.hp -= your_hp
+                                                victim.hp -= 1
+                                                parent_game.subgame = \
+                                                StageGame(your_hp, 1, True)
+                                                sub_game = parent_game.subgame
+                                                chosen_game = \
+                                                parent_game if \
+                                                sub_game is None else sub_game
+                                                player = chosen_game.players[0]
+                                                victim = chosen_game.players[1]
+                                                if isinstance(
+                                                    sub_game, StageGame
+                                                ) :
+                                                    sub_game.gen_bullets()
+                                            else :
+                                                while True :
+                                                    try :
+                                                        evil_hp: int = \
+                                                        int(input(
+                                                            "请输入你要作为赌"
+                                                            "注的生命值(1~{0})"
+                                                            ":".format(
+                                                                victim.hp
+                                                            )
+                                                        ))
+                                                        if 0 < evil_hp <= \
+                                                           victim.hp :
+                                                            print("对方以",
+                                                                  evil_hp,
+                                                                  "生命值应战")
+                                                            player.hp -=your_hp
+                                                            victim.hp -=evil_hp
+                                                            parent_game\
+                                                            .subgame=StageGame(
+                                                                your_hp,
+                                                                evil_hp, True
+                                                            )
+                                                            sub_game = \
+                                                            parent_game.subgame
+                                                            chosen_game = \
+                                                            parent_game if \
+                                                            sub_game is None \
+                                                            else sub_game
+                                                            player = \
+                                                            chosen_game\
+                                                            .players[0]
+                                                            victim = \
+                                                            chosen_game\
+                                                            .players[1]
+                                                            if isinstance(
+                                                                sub_game,
+                                                                StageGame
+                                                            ) :
+                                                                sub_game\
+                                                                .gen_bullets()
+                                                            break
+                                                    except ValueError :
+                                                        pass
+                                        else :
+                                            evil_hp: int = randint(1,victim.hp)
+                                            print("恶魔以", evil_hp,
+                                                  "生命值应战")
+                                            player.hp -= your_hp
+                                            victim.hp -= evil_hp
+                                            parent_game.subgame = StageGame(
+                                                your_hp, evil_hp, True
+                                            )
+                                            sub_game = parent_game.subgame
+                                            chosen_game = \
+                                            parent_game if sub_game is None \
+                                            else sub_game
+                                            player = chosen_game.players[0]
+                                            victim = chosen_game.players[1]
+                                            if isinstance(sub_game, StageGame):
+                                                sub_game.gen_bullets()
                                     else :
                                         used = False
                                 except ValueError :
@@ -2038,6 +2166,8 @@ while 1 :
                                 sub_game = parent_game.subgame
                                 chosen_game = \
                                 parent_game if sub_game is None else sub_game
+                                player = chosen_game.players[1]
+                                victim = chosen_game.players[0]
                                 if isinstance(sub_game, StageGame) :
                                     sub_game.gen_bullets()
                             else :
@@ -2057,6 +2187,8 @@ while 1 :
                                             chosen_game = \
                                             parent_game if sub_game is None \
                                             else sub_game
+                                            player = chosen_game.players[1]
+                                            victim = chosen_game.players[0]
                                             if isinstance(sub_game, StageGame):
                                                 sub_game.gen_bullets()
                                             break
@@ -2073,6 +2205,8 @@ while 1 :
                             sub_game = parent_game.subgame
                             chosen_game = \
                             parent_game if sub_game is None else sub_game
+                            player = chosen_game.players[1]
+                            victim = chosen_game.players[0]
                             if isinstance(sub_game, StageGame) :
                                 sub_game.gen_bullets()
                         break
@@ -2086,7 +2220,11 @@ while 1 :
                         )
                         print("恶魔维修了一下枪筒")
                 elif slot[1] == 34 :
-                    will_use = nightmare or not randint(0, 4)
+                    will_use = (not (all(chosen_game.bullets[
+                        :chosen_game.bullets.count(True)
+                    ]) and all(True if x is None else all(x[:x.count(True)])
+                               for x in chosen_game.extra_bullets))) \
+                    if nightmare else not randint(0, 4)
                     if will_use :
                         player.slots[slotid] = (slot[0], None)
                         false_count: int = 0

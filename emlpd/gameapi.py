@@ -31,7 +31,7 @@ __all__ = ["VER", "VER_STRING", "Slot", "ShootResult", "ShootResultAnalyzer",
            "Game", "GameSave", "Player"]
 
 VER: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]] = \
-(0, 4, 2, "b", 3)
+(0, 4, 2, "rc", 1)
 
 VER_STRING: str = \
 ("{0}.{1}.{2}-{3}{4}" if len(VER) > 4 else "{0}.{1}.{2}").format(*VER)
@@ -60,16 +60,26 @@ class Player :
         self, controllable: bool = False, hp: int = 1,
         slots: Union[List[Slot], int] = 0,
         sending_total: Optional[Dict[int, int]] = None,
-        tools_sending_weight: Optional[Dict[
-            int, Union[int, Callable[["Game"], int]]
-        ]] = None,
-        tools_sending_limit_in_game: Optional[Dict[int, int]] = None,
+        tools_sending_weight: Optional[
+            Dict[int, Union[int, Callable[["Game"], int]]]
+        ] = None, tools_sending_limit_in_game: Optional[Dict[int, int]] = None,
         tools_sending_limit_in_slot: Optional[Dict[
             int, Union[int, Callable[["Game"], int]]
         ]] = None, slot_sending_weight: Optional[Dict[
             int, Union[int, Callable[["Game"], int]]
         ]] = None, stopped_turns: int = 0
     ) -> None :
+        """
+        :param controllable: 玩家是否用户可控制。
+        :param hp: 玩家的生命值。
+        :param slots: 槽位或永久空槽位数。
+        :param tools_sending_weight: 道具发放相对权重(键为道具ID,值为相对权重值)。
+        :param tools_sending_limit_in_game: 一局游戏道具发放的最多次数(键为道具ID,值为最多次数值)。
+        :param tools_sending_limit_in_slot: 槽位中道具存在的最大数(键为道具ID,值为最大数值)。
+        :param slot_sending_weight: 槽位发放相对权重(键为槽位有效期,值为相对权重值)。
+        :param stopped_turns: 玩家接下来不能行动的轮数。
+        """
+
         self.controllable = controllable
         self.hp = hp
         self.slots = \
@@ -435,6 +445,13 @@ class Game :
         return self.players[1].count_tools(toolid)
 
     def random_tool_to_player(self, player: Player) -> int :
+        """
+        基于玩家当前的情况返回一个随机道具。
+
+        :param player: 目标玩家。
+        :return: 随机道具的ID。
+        """
+
         randomlist: List[int] = []
         for k, v in player.tools_sending_weight.items() :
             for _ in range(v if isinstance(v, int) else v(self)) :
@@ -474,6 +491,13 @@ class Game :
         return self.random_tool_to_player(self.players[1])
 
     def send_tools(self, player: Player, max_amount: int = 2) -> int :
+        """
+        向玩家发放随机道具。
+
+        :param player: 目标玩家。
+        :return: 实际发放道具的数量。
+        """
+
         counting_empty_slots_index: List[int] = []
         for slot_id in range(len(player.slots)) :
             if player.slots[slot_id][1] is None :
@@ -522,6 +546,10 @@ class Game :
         return self.send_tools(self.players[1], max_amount)
 
     def run_turn(self) -> None :
+        """
+        运行一轮。
+        """
+
         self.turn_orders.append(self.turn_orders[0])
         del self.turn_orders[0]
         while self.players[self.turn_orders[0]].stopped_turns > 0 :
@@ -611,6 +639,15 @@ class Game :
                   sent_weight: Optional[Dict[int, Union[int, Callable[
                       ["Game"], int
                   ]]]] = None) -> Optional[int] :
+        """
+        向玩家送出一个槽位。
+
+        :param player: 目标玩家。
+        :param sent_probability: 送出的概率。
+        :param sent_weight: 送出槽位时长权重。键为时长,值为权重值。
+        :return: 送出槽位的时长。若未送出则返回None。
+        """
+
         if sent_weight is None :
             return self.send_slot(
                 player, sent_probability, player.slot_sending_weight
