@@ -192,7 +192,7 @@ slot: Slot
 
 while 1 :
     gametime_time_start: float = time()
-    if chosen_game.r_hp <= 0 or chosen_game.e_hp <= 0 :
+    if not (chosen_game.players[0].alive and chosen_game.players[1].alive) :
         if chosen_game is sub_game :
             if isinstance(sub_game, StageGame) :
                 if sub_game.players[1].controllable :
@@ -204,20 +204,23 @@ while 1 :
                         parent_game.players[0].hp += sub_game.tot_hp
                 elif not sub_game.players[0].alive :
                     print("很遗憾,恶魔赢得了擂台战")
-                    parent_game.e_hp += sub_game.tot_hp
+                    parent_game.players[1] += sub_game.tot_hp
                 elif not sub_game.players[1].alive :
                     print("恭喜你,你赢得了擂台战!")
-                    parent_game.r_hp += sub_game.tot_hp
+                    parent_game.players[0].hp += sub_game.tot_hp
             parent_game.subgame = None
             chosen_game = parent_game
         else :
             try :
-                if chosen_game.e_hp <= 0 :
-                    if nightmare :
-                        gamesave.add_exp(ceil(10*(2-chosen_game.e_hp)*\
-                                              GAMEMODE_SET[gamemode_i][2]))
+                if not chosen_game.players[1].alive :
+                    if nightmare and not chosen_game.players[1].controllable :
+                        gamesave.add_exp(max(ceil(10*(
+                            2-chosen_game.players[1].hp
+                        )*GAMEMODE_SET[gamemode_i][2]), 0))
                     elif not debug :
-                        gamesave.add_exp(10*(2-chosen_game.e_hp))
+                        gamesave.add_exp(max(10*(
+                            2-chosen_game.players[1].hp
+                        ), 0))
                     if not debug :
                         gamesave.add_coins()
                 parent_game = next(chosen_games)
@@ -1395,7 +1398,7 @@ while 1 :
                             player.multishoot_level -= 1
                     for bullets_i in shoot_result :
                         if bullets_i is not None :
-                            if nightmare :
+                            if nightmare and not victim.controllable :
                                 if bullets_i[0] or not randint(0, 3) :
                                     gamesave.add_exp(ceil(
                                         GAMEMODE_SET[gamemode_i][2]
@@ -1407,7 +1410,7 @@ while 1 :
                                 print("哦嘿,子弹居然炸膛了!")
                                 if bullets_i[0] :
                                     gamesave.exploded_againstshoot_trues += 1
-                                    if nightmare :
+                                    if nightmare and not victim.controllable :
                                         gamesave.add_exp(ceil((
                                             base_attack+player.attack_boost if
                                             isinstance(player, NormalPlayer)
@@ -1505,7 +1508,7 @@ while 1 :
                                                   if victim.controllable
                                                   else "恶魔的一件防弹衣爆了")
                                 elif bullets_i[0] :
-                                    if nightmare :
+                                    if nightmare and not victim.controllable :
                                         gamesave.add_exp(ceil((
                                             base_attack+player.attack_boost if
                                             isinstance(player, NormalPlayer)
@@ -1744,7 +1747,7 @@ while 1 :
                             break
                 elif slot[1] == 2 :
                     will_use = chosen_game.bullets[0] if nightmare else \
-                                     not randint(0, 1)
+                               not randint(0, 1)
                     if isinstance(player, NormalPlayer) and will_use :
                         player.slots[slotid] = (slot[0], None)
                         player.attack_boost += 1
@@ -2549,8 +2552,8 @@ if chosen_game.players[1].controllable :
         print("恭喜玩家 1 ,成功把玩家 0 变成了{0}!".format(cat_girl))
     else :
         print("你们最后同归于尽了")
-elif chosen_game.r_hp > 0 :
-    if chosen_game.e_hp == 0 :
+elif chosen_game.players[0].alive :
+    if chosen_game.e_hp >= 0 :
         print("恭喜你,成功把恶魔变成了{0}!".format(cat_girl))
     elif chosen_game.e_hp == -1 :
         print("恭喜你,成功把恶魔打得体无完肤!")
@@ -2558,10 +2561,10 @@ elif chosen_game.r_hp > 0 :
         print("恭喜你,成功把恶魔化作一团灰烬!")
     else :
         print("恭喜你,成功让恶魔原地消失!")
-elif chosen_game.r_hp == 0 :
-    if chosen_game.e_hp > 0 :
+elif chosen_game.r_hp >= 0 :
+    if chosen_game.players[1].alive :
         print("唉....你被恶魔变成了{0}".format(cat_girl))
-    elif chosen_game.e_hp == 0 :
+    elif chosen_game.e_hp >= 0 :
         print("你们最后同归于尽了")
         gamesave.add_exp(25)
         gamesave.add_coins()
@@ -2578,9 +2581,9 @@ elif chosen_game.r_hp == 0 :
         gamesave.add_exp(1500)
         gamesave.add_coins(32)
 elif chosen_game.r_hp == -1 :
-    if chosen_game.e_hp > 0 :
+    if chosen_game.players[1].alive :
         print("唉....你被恶魔打得体无完肤")
-    elif chosen_game.e_hp == 0 :
+    elif chosen_game.e_hp >= 0 :
         print("恶魔让你面目全非,但他也付出了生命的代价")
         gamesave.add_exp(80)
         gamesave.add_coins(3)
@@ -2597,9 +2600,9 @@ elif chosen_game.r_hp == -1 :
         gamesave.add_exp(4800)
         gamesave.add_coins(100)
 elif chosen_game.r_hp == -2 :
-    if chosen_game.e_hp > 0 :
+    if chosen_game.players[1].alive :
         print("唉....你被恶魔化作一团灰烬")
-    elif chosen_game.e_hp == 0 :
+    elif chosen_game.e_hp >= 0 :
         print("你为恶魔化作灰烬,而它成为了{0}".format(cat_girl))
         gamesave.add_exp(400)
         gamesave.add_coins(10)
@@ -2616,9 +2619,9 @@ elif chosen_game.r_hp == -2 :
         gamesave.add_exp(16000)
         gamesave.add_coins(320)
 else :
-    if chosen_game.e_hp > 0 :
+    if chosen_game.players[1].alive :
         print("唉....恶魔让你人间蒸发了")
-    elif chosen_game.e_hp == 0 :
+    elif chosen_game.e_hp >= 0 :
         print("恶魔作为{0}看着你消失于世上".format(cat_girl))
         gamesave.add_exp(1500)
         gamesave.add_coins(32)
