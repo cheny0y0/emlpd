@@ -22,8 +22,13 @@ from sys import argv
 from time import sleep, time
 from typing import Dict, Iterator, List, Optional, TYPE_CHECKING, Tuple
 
-from .gameapi import Game, GameSave, Player, ShootResult, Slot, VER_STRING
+from .gameapi import Game, GameSave, I18nText, Player, ShootResult, Slot, \
+                     VER_STRING
 from .gameinst import GAMEMODE_SET, NormalGame, NormalPlayer, StageGame
+
+GAME_TITLE = I18nText(
+    "恶魔轮盘赌（重构版）", en_en="Evil's Mutual Linear Probability Detection"
+)
 
 print("""emlpd  Copyright (C) 2024-2025  REGE
 This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
@@ -33,7 +38,10 @@ under certain conditions; type `show c' for details.""")
 gamesave: GameSave = GameSave()
 gamemode_i: int = 1
 
-print("恶魔轮盘赌（重构版） v"+VER_STRING)
+for i in argv[1:] :
+    if i.startswith("lang=") :
+        I18nText.selected_lang = i[5:]
+print(GAME_TITLE, "v"+VER_STRING)
 debug: bool = "debug" in argv[1:]
 nightmare: bool = "nightmare" in argv[1:]
 skipthread: bool = "skipthread" in argv[1:]
@@ -50,10 +58,17 @@ except FileNotFoundError :
 except Exception as err :
     if debug :
         print(repr(err))
-    input("读取存档遇到问题。按下回车创建一个新的存档。")
+    input(I18nText(
+        "读取存档遇到问题。按下回车创建一个新的存档。",
+        en_en="Problem reading game save. Press enter to create a new save."
+    ))
 
 if nightmare :
-    print("警告:梦魇模式已激活。恶魔会变得无比强大!!!")
+    print(I18nText(
+        "警告:梦魇模式已激活。恶魔会变得无比强大!!!",
+        en_en="WARNING: NIGHTMARE MODE ACTIVATED. THE EVIL WILL BE "
+              "EXTRAORDINARILY STRONG!!!"
+    ))
 print("“哦!看看,又一个来送死的”")
 if not skipthread :
     sleep(2.5)
@@ -64,26 +79,31 @@ print("“现在开始我们的游戏吧”")
 if not skipthread :
     sleep(1.5)
 
-print("当前等级:", gamesave.level)
-print("当前经验:", gamesave.exp, "/", 250*(gamesave.level+1))
-print("当前金币数:", gamesave.coins, "/ 65535")
+print(I18nText("当前等级:", en_en="Current LVL:"), gamesave.level)
+print(I18nText("当前经验:", en_en="Current EXP:"), gamesave.exp, "/",
+      250*(gamesave.level+1))
+print(I18nText("当前金币数:", en_en="Current gold coin count:"),
+      gamesave.coins, "/ 65535")
 if not skipthread :
     sleep(2)
 
-print("输入“stat”以查看统计信息。")
+print(I18nText("输入“stat”以查看统计信息。", en_en="Input “stat” for stats."))
 for k, v in GAMEMODE_SET.items() :
     if len(v) > 4 :
-        print("游戏模式", k, ":", v[3])
+        print(I18nText("游戏模式", en_en="Game Mode"), k, ":", v[3])
         if v[4] is None :
-            print("没有介绍")
+            print(I18nText("没有介绍", en_en="No introduction"))
         else :
-            print("介绍:", v[4])
+            print(I18nText("介绍:", en_en="Introduction:"), v[4])
     else :
-        print("游戏模式", k)
-        print("没有名字")
+        print(I18nText("游戏模式", en_en="Game Mode"), k)
+        print(I18nText("没有名字", en_en="No name"))
 
 while 1 :
-    gamemode: str = input("选择游戏模式请输入对应的编号:")
+    gamemode: str = input(I18nText(
+        "选择游戏模式请输入对应的编号:",
+        en_en="Input the ID for selecting game mode:"
+    ))
     try :
         gamemode_i = int(gamemode)
     except ValueError :

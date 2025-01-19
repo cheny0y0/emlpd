@@ -18,48 +18,138 @@ from fractions import Fraction
 from random import randint
 from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple, \
                    Union
-from .gameapi import Game, Slot, ShootResult, Player
+from .gameapi import Game, Slot, ShootResult, Player, I18nText
 
 __all__ = ["GENERIC_TOOLS", "GAMEMODE_SET", "gen_tools_from_generic_tools",
            "StageGame", "NormalGame", "NormalPlayer"]
 
-GENERIC_TOOLS: Tuple[Tuple[str, Optional[str]], ...] = (
-    ("良枪(一)", "保证向自己开枪不会炸膛(无提示)"), # ID0
-    ("良枪(二)", "保证向对方开枪不会炸膛(无提示)"), # ID1
-    ("小刀", "非常不讲武德的提升1点伤害(无上限)"), # ID2
-    ("开挂(一)", "将当前弹夹里的1发子弹退出"), # ID3
-    ("超级小木锤", "将对方敲晕1轮"), # ID4
-    ("道德的崇高赞许", "回复1点生命值"), # ID5
-    ("透视镜", "查看当前子弹"), # ID6
-    ("拿来主义", "拿来1个道具(无提示)"), # ID7
-    ("你的就是我的", "将对方道具槽位和自己共用(无提示)"), # ID8
-    ("防弹衣", "防住对面射来的子弹"), # ID9
-    ("反甲", "可以反弹对面射来的子弹(无提示)"), # ID10 TODO
-    ("骰子", "可以决定命运......"), # ID11
-    ("槽位延期", "可以让临时槽位延后过期(无提示)"), # ID12
-    ("镜子", "镜子内外皆为平等"), # ID13
-    ("接弹套", "概率接住对面射来的子弹并重新入膛(无提示)"), # ID14
-    ("填实", "随机把空弹变为实弹"), # ID15
-    ("重整弹药", "给你重新放入弹药的机会"), # ID16
-    ("双发射手", "向对面开枪一次可射出多发子弹"), # ID17
-    ("连发射手", "向对面开枪一次有概率清空弹夹"), # ID18
-    ("硬币", "可以给你道具......"), # ID19
+GENERIC_TOOLS: Tuple[Tuple[
+    Union[str, I18nText], Optional[Union[str, I18nText]]
+], ...] = (
+    ("良枪(一)", I18nText(
+        "保证向自己开枪不会炸膛(无提示)",
+        en_en="Promise not to explode when shooting at yourself (no hint)"
+    )), # ID0
+    ("良枪(二)", I18nText(
+        "保证向对方开枪不会炸膛(无提示)",
+        en_en="Promise not to explode when shooting at the opposite (no hint)"
+    )), # ID1
+    ("小刀", I18nText(
+        "非常不讲武德的提升1点伤害(无上限)",
+        en_en="Increase 1 attack damage very non-woodly (unlimited)"
+    )), # ID2
+    ("开挂(一)", I18nText(
+        "将当前弹夹里的1发子弹退出",
+        en_en="Make 1 bullet quit from the current clip"
+    )), # ID3
+    ("超级小木锤", I18nText(
+        "将对方敲晕1轮",
+        en_en="Hit the opponent to dazing for 1 turn"
+    )), # ID4
+    ("道德的崇高赞许", I18nText("回复1点生命值", en_en="Regain 1 HP")), # ID5
+    ("透视镜", I18nText(
+        "查看当前子弹", en_en="View the outermost bullets"
+    )), # ID6
+    ("拿来主义", I18nText(
+        "拿来1个道具(无提示)", en_en="Fetch 1 tool (no hint)"
+    )), # ID7
+    ("你的就是我的", I18nText(
+        "将对方道具槽位和自己共用(无提示)",
+        en_en="Share the opposite's slots with you (no hint)"
+    )), # ID8
+    ("防弹衣", I18nText(
+        "防住对面射来的子弹", en_en="Defend bullets shot from the opposite"
+    )), # ID9
+    ("反甲", I18nText(
+        "可以反弹对面射来的子弹(无提示)",
+        en_en="Rebounce bullet shot from the opposite (no hint)"
+    )), # ID10 TODO
+    ("骰子", I18nText(
+        "可以决定命运......", en_en="This can decide your fate..."
+    )), # ID11
+    ("槽位延期", I18nText(
+        "可以让临时槽位延后过期(无提示)",
+        en_en="Let temporary slots expire later (no hint)"
+    )), # ID12
+    ("镜子", I18nText(
+        "镜子内外皆为平等", en_en="Equality in the mirror from in to out"
+    )), # ID13
+    ("接弹套", I18nText(
+        "概率接住对面射来的子弹并重新入膛(无提示)",
+        en_en="Get a chance catching bullet shot from the opposite and make it"
+              " reenter the clip (no hint)"
+    )), # ID14
+    ("填实", I18nText(
+        "随机把空弹变为实弹", en_en="Randomly turn falses into trues"
+    )), # ID15
+    ("重整弹药", I18nText(
+        "给你重新放入弹药的机会",
+        en_en="Give you the oppotunity of arranging the bullets"
+    )), # ID16
+    ("双发射手", I18nText(
+        "向对面开枪一次可射出多发子弹",
+        en_en="Shoot multiple bullets to the opposite in once"
+    )), # ID17
+    ("连发射手", I18nText(
+        "向对面开枪一次有概率清空弹夹",
+        en_en="Get a chance emptying the clip when shooting at the opposite"
+    )), # ID18
+    ("硬币", I18nText(
+        "可以给你道具......", en_en="This can give you tool..."
+    )), # ID19
     ("燃烧弹", "让射出的子弹带着火焰"), # ID20 TODO
-    ("破枪", "让对方开枪时必定炸膛(无提示)"), # ID21
-    ("取出子弹", "取出1发由你指定位置的子弹"), # ID22
-    ("空弹", "放入1发由你指定位置的空弹"), # ID23
-    ("实弹", "放入1发由你指定位置的实弹"), # ID24
-    ("神秘子弹", "放入1发由你指定位置的未知子弹"), # ID25
-    ("绷带", "2回合后让负伤数减1"), # ID26
-    ("医疗包", "可以回复生命值,减少负伤数"), # ID27
-    ("开挂(二)", "立即更换一批新的弹夹"), # ID28
-    ("双枪会给出答案", "双倍枪筒,双倍快乐"), # ID29
+    ("破枪", I18nText(
+        "让对方开枪时必定炸膛(无提示)",
+        en_en="Let the opposite's shot definitely exploded (no hint)"
+    )), # ID21
+    ("取出子弹", I18nText(
+        "取出1发由你指定位置的子弹", en_en="Draw out 1 bullet specified by you"
+    )), # ID22
+    ("空弹", I18nText(
+        "放入1发由你指定位置的空弹",
+        en_en="Put 1 false into a place specified by you"
+    )), # ID23
+    ("实弹", I18nText(
+        "放入1发由你指定位置的实弹",
+        en_en="Put 1 true into a place specified by you"
+    )), # ID24
+    ("神秘子弹", I18nText(
+        "放入1发由你指定位置的未知子弹",
+        en_en="Put 1 unknown bullet into a place specified by you"
+    )), # ID25
+    ("绷带", I18nText(
+        "2回合后让负伤数减1",
+        en_en="Let hurting point decrease by 1 after 2 rounds"
+    )), # ID26
+    ("医疗包", I18nText(
+        "可以回复生命值,减少负伤数", en_en="Regain HP and reduce hurting point"
+    )), # ID27
+    ("开挂(二)", I18nText(
+        "立即更换一批新的弹夹", en_en="Instantly change a batch of new clips"
+    )), # ID28
+    ("双枪会给出答案", I18nText(
+        "双倍枪筒,双倍快乐", en_en="Doubled clips doubles joy"
+    )), # ID29
     ("所有或一无所有", "一夜暴富?一夜归零?"), # ID30 TODO
-    ("超级大木锤", "整回合都是我的了"), # ID31
-    ("不死不休", "打上擂台"), # ID32
-    ("枪筒维修", "降低开枪的炸膛概率"), # ID33
-    ("空实分离", "实弹往前,空弹在后"), # ID34
-    ("弹夹合并", "一条龙服务(指子弹)") # ID35
+    ("超级大木锤", I18nText(
+        "整回合都是我的了", en_en="The whole round is mine"
+    )), # ID31
+    ("不死不休", I18nText("打上擂台", en_en="Battle onto the stage")), # ID32
+    ("枪筒维修", I18nText(
+        "降低开枪的炸膛概率",
+        en_en="Reduce the propability of explosion when shooting"
+    )), # ID33
+    ("空实分离", I18nText(
+        "实弹往前,空弹在后", en_en="Trues go ahead, falses be after"
+    )), # ID34
+    ("弹夹合并", I18nText(
+        "一条龙服务(指子弹)", en_en="ALong service (refers to bullets)"
+    )), # ID35
+    ("能量饮料", I18nText(
+        "有力气开枪才不会不由自主地晕",
+        en_en="Only shooting with energies doesn't cause to daze beyond your "
+              "control"
+    )) # ID36
 )
 
 def gen_tools_from_generic_tools(toolids: Iterable[int]) -> \

@@ -18,8 +18,8 @@ import sys
 from math import ceil
 from random import choice, randint, random
 import struct
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union, \
-                   no_type_check
+from typing import Callable, ClassVar, Dict, Iterable, List, Optional, Tuple, \
+                   Union, no_type_check
 
 if sys.version_info >= (3, 13) :
     from warnings import deprecated
@@ -27,11 +27,11 @@ else :
     def deprecated(message: str) :
         return lambda o: o
 
-__all__ = ["VER", "VER_STRING", "Slot", "ShootResult", "ShootResultAnalyzer",
-           "Game", "GameSave", "Player"]
+__all__ = ["VER", "VER_STRING", "Slot", "ShootResult", "I18nText",
+           "ShootResultAnalyzer", "Game", "GameSave", "Player"]
 
 VER: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]] = \
-(0, 4, 2)
+(0, 4, 3, "a", 1)
 
 VER_STRING: str = \
 ("{0}.{1}.{2}-{3}{4}" if len(VER) > 4 else "{0}.{1}.{2}").format(*VER)
@@ -39,6 +39,23 @@ VER_STRING: str = \
 Slot = Tuple[int, Optional[int]]
 ShootResult = Tuple[Optional[Tuple[bool, bool]], Optional[Tuple[bool, bool]],
                     Optional[Tuple[bool, bool]], Optional[Tuple[bool, bool]]]
+
+class I18nText :
+    selected_lang: ClassVar[str] = "zh_hans"
+
+    defaulted: str
+    translations: Dict[str, str]
+
+    def __init__(self, defaulted: str, **translations) -> None :
+        self.defaulted = defaulted
+        self.translations = translations
+
+    @property
+    def string(self) -> str :
+        return self.translations.get(type(self).selected_lang, self.defaulted)
+
+    def __str__(self) -> str :
+        return self.string
 
 class ShootResultAnalyzer :
     @staticmethod
@@ -129,7 +146,9 @@ class Player :
 class Game :
     players: Dict[int, Player]
     turn_orders: List[int]
-    tools: Dict[int, Tuple[str, Optional[str]]]
+    tools: Dict[int, Tuple[
+        Union[str, I18nText], Optional[Union[str, I18nText]]
+    ]]
     slots_sharing: Optional[Tuple[bool, int, List[Slot]]]
     max_bullets: int
     min_bullets: int
@@ -145,7 +164,9 @@ class Game :
     def __init__(
         self, min_bullets: int, max_bullets: int, min_true_bullets: int,
         min_false_bullets: int, max_true_bullets: int, r_hp: int, e_hp: int,
-        tools: Dict[int, Tuple[str, Optional[str]]],
+        tools: Dict[int, Tuple[
+            Union[str, I18nText], Optional[Union[str, I18nText]]
+        ]],
         tools_sending_weight: Dict[int, Union[int, Callable[["Game"], int]]],
         tools_sending_limit_in_game: Dict[int, int],
         tools_sending_limit_in_slot: Dict[int,
