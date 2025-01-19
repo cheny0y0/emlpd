@@ -613,7 +613,7 @@ dice_kingdom: NormalGame = NormalGame(
 
 class InfiniteMode2 :
     period_count: int
-    last_game: Optional[Game]
+    last_game: Optional[NormalGame]
 
     def __init__(self, period_count: int = 0) -> None :
         self.period_count = period_count
@@ -623,24 +623,23 @@ class InfiniteMode2 :
         return self
 
     def __next__(self) -> Game :
-        if self.last_game is not None and not self.last_game.players[0].alive :
+        lg: Optional[NormalGame] = self.last_game
+        if lg is not None and not lg.players[0].alive :
             raise StopIteration
-        r_slots: Optional[List[Slot]] = None if self.last_game is None else (
-            self.last_game.r_slots if self.last_game.slots_sharing is None or \
-                                      not self.last_game.slots_sharing[0] else\
-            self.last_game.slots_sharing[2]
+        r_slots: Optional[List[Slot]] = None if lg is None else (
+            lg.r_slots if lg.slots_sharing is None or \
+                          not lg.slots_sharing[0] else lg.slots_sharing[2]
         )
-        r_stamina: Optional[int] = \
-        None if self.last_game is None else self.last_game.players[0].stamina
+        r: Optional[Player] = None if lg is None else lg.players[0]
         explosion_exponent: Optional[int] = \
-        None if self.last_game is None else self.last_game.explosion_exponent
+        None if lg is None else lg.explosion_exponent
         self.last_game = NormalGame(
             2,
             8,
             1,
             1,
             8,
-            self.last_game.r_hp if self.last_game is not None else 2,
+            2,
             10+self.period_count,
             normal_mode.tools.copy(),
             {
@@ -760,10 +759,11 @@ class InfiniteMode2 :
             9,
             True
         )
+        if r is not None :
+            r.stamina = 32 - (32-r.stamina) // 2
+            self.last_game.players[0] = r
         if r_slots is not None :
             self.last_game.r_slots = r_slots
-        if r_stamina is not None :
-            self.last_game.players[0].stamina = 32 - (32-r_stamina)//2
         if explosion_exponent is not None :
             self.last_game.explosion_exponent = explosion_exponent
         self.period_count += 1

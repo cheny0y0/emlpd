@@ -31,7 +31,7 @@ __all__ = ["VER", "VER_STRING", "Slot", "ShootResult", "ShootResultAnalyzer",
            "Game", "GameSave", "Player"]
 
 VER: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]] = \
-(0, 4, 2, "rc", 1)
+(0, 4, 2, "rc", 2)
 
 VER_STRING: str = \
 ("{0}.{1}.{2}-{3}{4}" if len(VER) > 4 else "{0}.{1}.{2}").format(*VER)
@@ -569,7 +569,7 @@ class Game :
         :param shooter: 开枪者。True为“你”,False为恶魔,None(未指定)则为当前方。
         :param explosion_probability: 炸膛概率。未指定则为0.05。
         :param bullets_id: 枪筒ID。未指定则为所有枪筒。
-        :param run_turn: 是否转换轮。
+        :param run_turn: 是否运行轮。
         :return: 表示子弹类型(实弹或空弹)及是否炸膛。若为None则表示弹夹内无子弹。
         """
 
@@ -622,7 +622,7 @@ class Game :
         :param explosion_probability: 炸膛概率。未指定则为0.05。
         :param combo: 一次要发出多少子弹。未指定则为1。
         :param bullets_id: 枪筒ID。未指定则为所有枪筒。
-        :param run_turn: 是否转换轮。
+        :param run_turn: 是否运行轮。
         :return: 一个列表,每项表示子弹类型(实弹或空弹)及是否炸膛。若为None则表示此时弹夹内无子弹。
         """
 
