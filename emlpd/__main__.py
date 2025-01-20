@@ -24,11 +24,7 @@ from typing import Dict, Iterator, List, Optional, TYPE_CHECKING, Tuple
 
 from .gameapi import Game, GameSave, I18nText, Player, ShootResult, Slot, \
                      VER_STRING
-from .gameinst import GAMEMODE_SET, NormalGame, NormalPlayer, StageGame
-
-GAME_TITLE = I18nText(
-    "恶魔轮盘赌（重构版）", en_en="Evil's Mutual Linear Probability Detection"
-)
+from .gameinst import GAMEMODE_SET, NormalGame, NormalPlayer, StageGame, Texts
 
 print("""emlpd  Copyright (C) 2024-2025  REGE
 This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
@@ -41,7 +37,7 @@ gamemode_i: int = 1
 for i in argv[1:] :
     if i.startswith("lang=") :
         I18nText.selected_lang = i[5:]
-print(GAME_TITLE, "v"+VER_STRING)
+print(Texts.GAME_TITLE, "v"+VER_STRING)
 debug: bool = "debug" in argv[1:]
 nightmare: bool = "nightmare" in argv[1:]
 skipthread: bool = "skipthread" in argv[1:]
@@ -90,20 +86,17 @@ if not skipthread :
 print(I18nText("输入“stat”以查看统计信息。", en_en="Input “stat” for stats."))
 for k, v in GAMEMODE_SET.items() :
     if len(v) > 4 :
-        print(I18nText("游戏模式", en_en="Game Mode"), k, ":", v[3])
+        print(Texts.GAME_MODE, k, ":", v[3])
         if v[4] is None :
-            print(I18nText("没有介绍", en_en="No introduction"))
+            print(Texts.NO_INTRODUCTION)
         else :
-            print(I18nText("介绍:", en_en="Introduction:"), v[4])
+            print(Texts.INTRODUCTION, v[4])
     else :
-        print(I18nText("游戏模式", en_en="Game Mode"), k)
-        print(I18nText("没有名字", en_en="No name"))
+        print(Texts.GAME_MODE, k)
+        print(Texts.NO_NAME)
 
 while 1 :
-    gamemode: str = input(I18nText(
-        "选择游戏模式请输入对应的编号:",
-        en_en="Input the ID for selecting game mode:"
-    ))
+    gamemode: str = input(Texts.CHOOSE_GAME_MODE)
     try :
         gamemode_i = int(gamemode)
     except ValueError :
@@ -250,7 +243,7 @@ while 1 :
                     with open("emlpd.dat", "wb") as gamesave_file :
                         gamesave_file.write(gamesave.serialize())
                 except OSError as err :
-                    print("存档时遇到问题!", err)
+                    print(Texts.PROBLEM_SAVING, err)
                 total_period_count += 1
                 gamesave.play_periods += 1
                 print("================")
@@ -312,14 +305,17 @@ while 1 :
         for tool_id in expired_slots :
             if tool_id is not None :
                 if i == 0 and not chosen_game.players[1].controllable :
-                    print("非常可惜,随着槽位的到期,你的",
-                          chosen_game.tools[tool_id][0], "也不翼而飞")
+                    print(Texts.R_SLOT_EXPIRED.string.format(
+                        chosen_game.tools[tool_id][0]
+                    ))
                 elif i == 1 and not chosen_game.players[1].controllable :
-                    print("非常高兴,随着槽位的到期,恶魔的",
-                          chosen_game.tools[tool_id][0], "不翼而飞")
+                    print(Texts.E_SLOT_EXPIRED.string.format(
+                        chosen_game.tools[tool_id][0]
+                    ))
                 else :
-                    print("随着槽位的到期,玩家", i, "的",
-                          chosen_game.tools[tool_id][0], "不翼而飞")
+                    print(Texts.R_SLOT_EXPIRED.string.format(
+                        chosen_game.tools[tool_id][0], i
+                    ))
     sleep(1)
     for i, player in chosen_game.players.items() :
         if player.controllable or i != 1 :
@@ -361,24 +357,29 @@ while 1 :
             any_player_has_tools = True
             if player.controllable or i != 1 :
                 if i == 0 and not chosen_game.players[1].controllable :
-                    print("你获得", chosen_game.send_tools(
-                        player, GAMEMODE_SET[gamemode_i][1]
-                    ), "个道具")
+                    print(Texts.R_TOOL_SENT.string.format(
+                        chosen_game.send_tools(
+                            player, GAMEMODE_SET[gamemode_i][1]
+                        )
+                    ))
                 else :
-                    print("玩家", i, "获得", chosen_game.send_tools(
-                        player, GAMEMODE_SET[gamemode_i][1]
-                    ), "个道具")
+                    print(Texts.PLAYER_TOOL_SENT.string.format(
+                        chosen_game.send_tools(
+                            player, GAMEMODE_SET[gamemode_i][1], i
+                        )
+                    ))
             else :
-                print("恶魔获得", chosen_game.send_tools(
+                print(Texts.E_TOOL_SENT.string.format(chosen_game.send_tools(
                     player, GAMEMODE_SET[gamemode_i][1]
-                ), "个道具")
+                )))
     if any_player_has_tools :
         sleep(1)
     chosen_game.gen_bullets()
-    print("子弹共有", len(chosen_game.bullets), "发")
+    print(Texts.BULLET_TOTAL.string.format(len(chosen_game.bullets)))
     sleep(1)
-    print("实弹", chosen_game.bullets.count(True), "发 , 空弹",
-          chosen_game.bullets.count(False), "发")
+    print(Texts.TRUES_FALSES_COUNT.string.format(
+        chosen_game.bullets.count(True), chosen_game.bullets.count(False)
+    ))
     shoot_result: ShootResult
     shoots_result: List[ShootResult]
     shoot_combo_addition: int
@@ -391,7 +392,7 @@ while 1 :
             with open("emlpd.dat", "wb") as gamesave_file :
                 gamesave_file.write(gamesave.serialize())
         except OSError as err :
-            print("存档时遇到问题!", err)
+            print(Texts.PROBLEM_SAVING, err)
         if not (chosen_game.players[0].alive and chosen_game.players[1].alive):
             break
         if chosen_game.players[0].stopped_turns > 0 :
@@ -2669,4 +2670,4 @@ try :
     with open("emlpd.dat", "wb") as gamesave_file :
         gamesave_file.write(gamesave.serialize())
 except OSError as err :
-    print("存档时遇到问题!", err)
+    print(Texts.PROBLEM_SAVING, err)

@@ -16,12 +16,12 @@
 
 from fractions import Fraction
 from random import randint
-from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple, \
-                   Union
+from typing import Callable, ClassVar, Dict, Iterable, Iterator, List, \
+                   Optional, Tuple, Union
 from .gameapi import Game, Slot, ShootResult, Player, I18nText
 
 __all__ = ["GENERIC_TOOLS", "GAMEMODE_SET", "gen_tools_from_generic_tools",
-           "StageGame", "NormalGame", "NormalPlayer"]
+           "StageGame", "NormalGame", "NormalPlayer", "Texts"]
 
 GENERIC_TOOLS: Tuple[Tuple[
     Union[str, I18nText], Optional[Union[str, I18nText]]
@@ -980,3 +980,49 @@ GAMEMODE_SET: Dict[int, Union[
     7: ((exploded_test,), 2, 1.75, "炸膛测试", "枪在哪边好使?"),
     8: ((onlybyhand,), 1, 2.5, "赤手空“枪”", "没有道具了")
 }
+
+class Texts :
+    GAME_TITLE: ClassVar[I18nText] = I18nText(
+        "恶魔轮盘赌（重构版）",
+        en_en="Evil's Mutual Linear Probability Detection"
+    )
+    GAME_MODE: ClassVar[I18nText] = I18nText("游戏模式", en_en="Game Mode")
+    NO_INTRODUCTION: ClassVar[I18nText] = \
+    I18nText("没有介绍", en_en="No introduction")
+    INTRODUCTION: ClassVar[I18nText] = I18nText("介绍:", en_en="Introduction:")
+    NO_NAME: ClassVar[I18nText] = I18nText("没有名字", en_en="No name")
+    CHOOSE_GAME_MODE: ClassVar[I18nText] = I18nText(
+        "选择游戏模式请输入对应的编号:",
+        en_en="Input the ID for selecting game mode:"
+    )
+    R_SLOT_EXPIRED: ClassVar[I18nText] = I18nText(
+        "非常可惜,随着槽位的到期,你的 {0} 也不翼而飞",
+        en_en="It's a pity that your {0} went AWOL with the slot expired"
+    )
+    E_SLOT_EXPIRED: ClassVar[I18nText] = I18nText(
+        "非常高兴,随着槽位的到期,恶魔的 {0} 不翼而飞",
+        en_en="It's a delight that the Evil's {0} went AWOL with the slot "
+              "expired"
+    )
+    PLAYER_SLOT_EXPIRED: ClassVar[I18nText] = I18nText(
+        "随着槽位的到期,玩家 {1} 的 {0} 不翼而飞",
+        en_en="Player {1}'s {0} went AWOL with the slot expired"
+    )
+    R_TOOL_SENT: ClassVar[I18nText] = I18nText(
+        "你获得 {0} 个道具", en_en="You've got {0} tool(s)"
+    )
+    E_TOOL_SENT: ClassVar[I18nText] = I18nText(
+        "恶魔获得 {0} 个道具", en_en="The Evil's got {0} tool(s)"
+    )
+    PLAYER_TOOL_SENT: ClassVar[I18nText] = I18nText(
+        "玩家 {1} 获得 {0} 个道具", en_en="Player {1}'s got {0} tool(s)"
+    )
+    BULLET_TOTAL: ClassVar[I18nText] = I18nText(
+        "子弹共有 {0} 发", en_en="Bullet total {0}"
+    )
+    TRUES_FALSES_COUNT: ClassVar[I18nText] = I18nText(
+        "实弹 {0} 发 , 空弹 {1} 发", en_en="{0} true(s), {1} false(s)"
+    )
+    PROBLEM_SAVING: ClassVar[I18nText] = I18nText(
+        "存档时遇到问题!", en_en="Problem saving!"
+    )
