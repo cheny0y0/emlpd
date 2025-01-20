@@ -2,7 +2,7 @@
 ## Regular Gameplay
 ### Run
 Python 3.6 or above is required.  
-Type `python -m emlpd` in the terminal.
+Type `python -m emlpd lang=en_en` in the terminal.
 ### Game Rule Introduction
 You need to follow the hints given to you in the game interface to defeat the
 Evil. To defeat the Evil, you need to make the Evil's HP 0 or less and your HP
@@ -19,16 +19,16 @@ Each shot has a chance of exploding (i.e., making the bullet act to the
 opposite; can be changed with a tool), see _Tool 21: **Pò Qiāng**_.  
 If a side has a hurting point of _n_(0≤_n_≤8,_n_∈**N**), then for each point of
 true bullet damage to the opposite, there is a probability of _n_/8 that it
-will result in an additional HP of damage, and a probability of 1-_n_/8 that it
+will result in an additional HP of damage, and a probability of 1−_n_/8 that it
 will result in a hurting point plus 1. Hurting point is initially 0.  
 If a side has _m_(0≤_m_≤32,_m_∈**N**) and a hurting point of
 _n_(0≤_n_≤8,_n_∈**N**), and if _m_>0, then this side's stamina decrease by 1
 for each shot. Each turn this side's stamina has a 1/(_n_+1) probability of
-increasing by 1. When _m_<8, there is a probability of 1-_m_/8 of that this
+increasing by 1. When _m_<8, there is a probability of 1−_m_/8 of that this
 side will get dazed for a turn.  
 If a side have _n_(_n_∈**N₊**) dazing turns, then if it would have been this
 side to shoot in the next turn, then the opposite still shoots in the next turn
-and the number of this side's dazing turns becomes _n_-1.
+and the number of this side's dazing turns becomes _n_−1.
 #### Game Cycles
 ##### Turn
 Shooting 1 time is called 1 turn.
@@ -59,14 +59,14 @@ Let the number of the opposite's dazing turn increase by 1.
 Suppose your current HP is _m_(_m_∈**N₊**), hurting point is
 _n_(0≤_n_≤8,_n_∈**N**), if _m_≤3+_n_/3, there is a probability of 100% that
 your HP will increase by 1; if _m_>3+_n_/3, there is a probability of
-pow(2,3+_n_/3-_m_) that your HP will increase by 1.
+pow(2,3+_n_/3−_m_) that your HP will increase by 1.
 ##### Tool 6: Tòu Shì Jìng
 Tells you whether it is true or false of the outermost bullet of each clip (the
 top message describes the main clip's).
 ##### Tool 7: Ná Lái Zhǔ Yì
-If the opposite has _n_(_n_∈**N**) non-OP tools, there is a probability of
+If the opposite has _n_(_n_∈**N**) non-limited tools, there is a probability of
 1/(_n_+1) of gaining a non-limited tool equally likely, and a probability of
-1-1/(_n_+1) of fetching 1 non-limited tool from the opposite equally likely.  
+1−1/(_n_+1) of fetching 1 non−limited tool from the opposite equally likely.  
 The two are opposite events.
 ##### Tool 8: Nǐ De Jiù Shì Wǒ De
 This is an OP tool.  
@@ -81,7 +81,7 @@ you, suppose the extra damage value of the turn is _n_(_n_∈**N**), the
 outermost bulletproof wearing will first reduce randint(1,⌈√(_n_+1)⌉) points of
 durability exponent. Subsequently, suppose the durability exponent of the
 outermost bulletproof wearing is _m_(_m_∈**Z**), if _m_<0, the bulletproof
-wearing has a probability of 1-pow(2,_m_) of disappearing.  
+wearing has a probability of 1−pow(2,_m_) of disappearing.  
 If 1 bulletproof wearing disappears, your break care potential increases by 1;
 if there is no bulletproof weareing after the bulletproof wearing disappears,
 each point of your break care potential has a probability of 15% of turning
@@ -126,7 +126,7 @@ And your and the opposite's dazing turns will become 0.
 Let your stacked bullet catcher increase by 1. Suppose you currently have
 _n_(_n_∈**N₊**) stacked bullet catchers, the opposite's additional damage is
 _m_(_m_∈**N**), if the opposite shoots 1 true bullet, there is a probability of
-(1-0.8*ⁿ*)/(1+_m_) that you will catch it(avoids the damage from the bullet and
+(1−0.8*ⁿ*)/(1+_m_) that you will catch it(avoids the damage from the bullet and
 tells you “你接住了一颗子弹”) and put it into the tail of the main clip, and
 let your stacked bullet catcher be 0; if the opposite shoots 1 false bullet,
 there is a probability of 0.8/(1+_m_) that you will catch it(tells you
@@ -155,9 +155,9 @@ Let your stacked combo shooter count increase by 1.
 Suppose currently you have _m_(_m_∈**N**) stacked repeaters, _n_(_n_∈**N**)
 stacked combo shooters, amount of the bullets in main clip is _r_(_r_∈**N₊**),
 if you shoot at the opposite, then at least min(_r_,1+_m_) bullets will be
-shot, and there will be a probability of 1-2⁻*ⁿ* shooting 1 more bullet(if there
+shot, and there will be a probability of 1−2⁻*ⁿ* shooting 1 more bullet(if there
 exists a bullet in the clip). In other words, when _n_>0, there is a
-probability of min(1,pow(1-2⁻*ⁿ*,_r_-1-_m_)) of clearing the clip. Suppose
+probability of min(1,pow(1−2⁻*ⁿ*,_r_−1−_m_)) of clearing the clip. Suppose
 _s_(_s_∈**N₊**) bullets are shot from the main clip, if _s_>_n_, then your
 stacked combo shooter will become 0; if _s_≤_n_, then your stacked combo
 shooter will decrease by _s_. For each additional shot bullet(by stacked
@@ -178,11 +178,11 @@ _n_(_n_∈**N**), and your stacked badgun number is _r_(_r_∈**N**). If shootin
 at oneself, when _r_>0, there is a 100% probability of exploding for each
 bullet shot; when _r_=0 and _m_>0, there is a 0% probability of exploding for
 each bullet shot; otherwise, there is a probability of
-(1-pow(1023/1024,_h_+200))² of exploding for each bullet shot. If shooting at
+(1−pow(1023/1024,_h_+200))² of exploding for each bullet shot. If shooting at
 the opposite, when _r_>0, there is a 100% probability of exploding for each
 bullet shot; when _r_=0 and _n_>0, there is a 0% probability of exploding for
 each bullet shot; otherwise, there is a probability of
-(1-pow(1023/1024,_h_+200))² of exploding for each bullet shot. The explosion
+(1−pow(1023/1024,_h_+200))² of exploding for each bullet shot. The explosion
 exponent increases by 1 when each bullet shot (whether exploded or not).
 ##### Tool 22: Qǔ Chū Zǐ Dàn
 Take 1 bullet from the location you specified out from the main clip and change
@@ -253,7 +253,7 @@ All tools except ID10 will be sent.
 Each side has 8 permanent slots.
 #### 2. Wú Xiàn Mó Shì(Yī)
 Only 1 period.  
-Your and the Evil's initial HP respectively are 2 and (2⁶⁴-1).  
+Your and the Evil's initial HP respectively are 2 and (2⁶⁴−1).  
 All tools except ID10, ID11 and ID13 will be sent.  
 Each side has 9 permanent slots.
 #### 3. Xiǎo Dāo Kuáng Huān
@@ -376,8 +376,8 @@ import emlpd.__main__ # type: ignore # import cannot be omitted!
 ```
 And run the script above, you will see:
 ```text
-游戏模式 9 : Game Mode Name
-介绍: Game Mode Description
+Game Mode 9 : Game Mode Name
+Introduction: Game Mode Description
 ```
 Input `9` for entering custom game mode.
 ## Classic Gameplay
@@ -396,7 +396,7 @@ in the next turn, otherwise the opposite will shoot.
 If 1 true bullet is shot, it causes 1 point of base damage.  
 If a side have _n_(_n_∈**N₊**) dazing turns, then if it would have been this
 side to shoot in the next turn, then the opposite still shoots in the next turn
-and the number of this side's dazing turns becomes _n_-1.
+and the number of this side's dazing turns becomes _n_−1.
 #### Game Cycles
 ##### Turn
 Shooting 1 time is called 1 turn.
@@ -416,6 +416,6 @@ Let the number of the opposite's dazing turn increase by 1.
 ##### Tool 5: Dào Dé De Chóng Gāo Zàn Xǔ
 Suppose your current HP is _m_(_m_∈**N₊**), if _m_≤3, there is a probability of
 100% that your HP will increase by 1; if _m_>3, there is a probability of
-pow(2,3-_m_) that your HP will increase by 1.
+pow(2,3−_m_) that your HP will increase by 1.
 ##### Tool 6: Tòu Shì Jìng
 Tells you whether it is true or false of the outermost bullet of the clip.

@@ -33,10 +33,13 @@ under certain conditions; type `show c' for details.""")
 
 gamesave: GameSave = GameSave()
 gamemode_i: int = 1
+gamesave_filename: str = "emlpd.dat"
 
 for i in argv[1:] :
     if i.startswith("lang=") :
         I18nText.selected_lang = i[5:]
+    elif i.startswith("save=") :
+        gamesave_filename = i[5:]
 print(Texts.GAME_TITLE, "v"+VER_STRING)
 debug: bool = "debug" in argv[1:]
 nightmare: bool = "nightmare" in argv[1:]
@@ -47,7 +50,7 @@ cat_girl: str = chr(
         ((date.today().month<<5)|date.today().day==129))
 
 try :
-    with open("emlpd.dat", "rb") as gamesave_file :
+    with open(gamesave_filename, "rb") as gamesave_file :
         gamesave = GameSave.unserialize(gamesave_file.read())
 except FileNotFoundError :
     pass
@@ -65,13 +68,18 @@ if nightmare :
         en_en="WARNING: NIGHTMARE MODE ACTIVATED. THE EVIL WILL BE "
               "EXTRAORDINARILY STRONG!!!"
     ))
-print("“哦!看看,又一个来送死的”")
+print(I18nText(
+    "“哦!看看,又一个来送死的”",
+    en_en="“Oh! Look, someone looking for death again”"
+))
 if not skipthread :
     sleep(2.5)
-print("“希望你能让我玩的尽兴”")
+print(I18nText(
+    "“希望你能让我玩的尽兴”", en_en="“Hope you are played joyfully by me”"
+))
 if not skipthread :
     sleep(2.5)
-print("“现在开始我们的游戏吧”")
+print(I18nText("“现在开始我们的游戏吧”", en_en="“Let's now start our game”"))
 if not skipthread :
     sleep(1.5)
 
@@ -86,7 +94,7 @@ if not skipthread :
 print(I18nText("输入“stat”以查看统计信息。", en_en="Input “stat” for stats."))
 for k, v in GAMEMODE_SET.items() :
     if len(v) > 4 :
-        print(Texts.GAME_MODE, k, ":", v[3])
+        print(Texts.GAME_MODE.string.format(k), v[3])
         if v[4] is None :
             print(Texts.NO_INTRODUCTION)
         else :
@@ -210,16 +218,16 @@ while 1 :
             if isinstance(sub_game, StageGame) :
                 if sub_game.players[1].controllable :
                     if not sub_game.players[0].alive :
-                        print("恭喜玩家 1 赢得了擂台战!")
+                        print(Texts.PLAYER_1_WON_STAGE)
                         parent_game.players[1].hp += sub_game.tot_hp
                     elif not sub_game.players[1].alive :
-                        print("恭喜玩家 0 赢得了擂台战!")
+                        print(Texts.PLAYER_0_WON_STAGE)
                         parent_game.players[0].hp += sub_game.tot_hp
                 elif not sub_game.players[0].alive :
-                    print("很遗憾,恶魔赢得了擂台战")
+                    print(Texts.E_WON_STAGE)
                     parent_game.players[1] += sub_game.tot_hp
                 elif not sub_game.players[1].alive :
-                    print("恭喜你,你赢得了擂台战!")
+                    print(Texts.R_WON_STAGE)
                     parent_game.players[0].hp += sub_game.tot_hp
             parent_game.subgame = None
             chosen_game = parent_game
@@ -240,20 +248,23 @@ while 1 :
                 sub_game = parent_game.subgame
                 chosen_game = parent_game if sub_game is None else sub_game
                 try :
-                    with open("emlpd.dat", "wb") as gamesave_file :
+                    with open(gamesave_filename, "wb") as gamesave_file :
                         gamesave_file.write(gamesave.serialize())
                 except OSError as err :
                     print(Texts.PROBLEM_SAVING, err)
                 total_period_count += 1
                 gamesave.play_periods += 1
                 print("================")
-                print("本周目持续了", period_turn_count, "轮,")
-                print(period_round_count, "回合,")
+                print(Texts.PERIOD_COUNT_INFO.string.format(
+                    period_turn_count, period_round_count
+                ))
                 round_turn_count = 0
                 period_turn_count = 0
                 period_round_count = 0
                 base_attack = 1
-                print("=== 第", total_period_count, "周目 ===")
+                print("===", Texts.PERIOD_ORDINAL.string.format(
+                    total_period_count
+                ), "===")
             except StopIteration :
                 break
     round_turn_count = 0
@@ -389,7 +400,7 @@ while 1 :
     while chosen_game.bullets :
         gametime_time_start = time()
         try :
-            with open("emlpd.dat", "wb") as gamesave_file :
+            with open(gamesave_filename, "wb") as gamesave_file :
                 gamesave_file.write(gamesave.serialize())
         except OSError as err :
             print(Texts.PROBLEM_SAVING, err)
@@ -2667,7 +2678,7 @@ print(total_round_count, "回合,")
 print(total_period_count, "周目")
 
 try :
-    with open("emlpd.dat", "wb") as gamesave_file :
+    with open(gamesave_filename, "wb") as gamesave_file :
         gamesave_file.write(gamesave.serialize())
 except OSError as err :
     print(Texts.PROBLEM_SAVING, err)

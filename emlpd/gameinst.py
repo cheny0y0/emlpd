@@ -986,7 +986,9 @@ class Texts :
         "恶魔轮盘赌（重构版）",
         en_en="Evil's Mutual Linear Probability Detection"
     )
-    GAME_MODE: ClassVar[I18nText] = I18nText("游戏模式", en_en="Game Mode")
+    GAME_MODE: ClassVar[I18nText] = I18nText(
+        "游戏模式 {0}:", en_en="Game Mode {0}:"
+    )
     NO_INTRODUCTION: ClassVar[I18nText] = \
     I18nText("没有介绍", en_en="No introduction")
     INTRODUCTION: ClassVar[I18nText] = I18nText("介绍:", en_en="Introduction:")
@@ -995,6 +997,28 @@ class Texts :
         "选择游戏模式请输入对应的编号:",
         en_en="Input the ID for selecting game mode:"
     )
+    PLAYER_1_WON_STAGE: ClassVar[I18nText] = I18nText(
+        "恭喜玩家 1 赢得了擂台战!",
+        en_en="Congratulations to Player 1 for winning the stage battle!"
+    )
+    PLAYER_0_WON_STAGE: ClassVar[I18nText] = I18nText(
+        "恭喜玩家 0 赢得了擂台战!",
+        en_en="Congratulations to Player 0 for winning the stage battle!"
+    )
+    E_WON_STAGE: ClassVar[I18nText] = I18nText(
+        "很遗憾,恶魔赢得了擂台战",
+        en_en="It's a pity that the Evil won the stage battle"
+    )
+    R_WON_STAGE: ClassVar[I18nText] = I18nText(
+        "恭喜你,你赢得了擂台站!",
+        en_en="Congratulations to you for winning the stage battle!"
+    )
+    PERIOD_COUNT_INFO: ClassVar[I18nText] = I18nText(
+        "本周目持续了 {0} 轮,\n{1} 回合",
+        en_en="This period kept {0} turn(s),\n{1} round(s)"
+    )
+    PERIOD_ORDINAL: ClassVar[I18nText] = \
+    I18nText("第 {0} 周目", en_en="Period {0}")
     R_SLOT_EXPIRED: ClassVar[I18nText] = I18nText(
         "非常可惜,随着槽位的到期,你的 {0} 也不翼而飞",
         en_en="It's a pity that your {0} went AWOL with the slot expired"
