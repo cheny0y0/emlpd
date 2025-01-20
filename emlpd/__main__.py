@@ -75,7 +75,7 @@ print(I18nText(
 if not skipthread :
     sleep(2.5)
 print(I18nText(
-    "“希望你能让我玩的尽兴”", en_en="“Hope you are played joyfully by me”"
+    "“希望你能让我玩的尽兴”", en_en="“Hope you'll be played joyfully by me”"
 ))
 if not skipthread :
     sleep(2.5)
@@ -334,14 +334,15 @@ while 1 :
             if new_slot is not None :
                 if new_slot > 0 :
                     if i == 0 and not chosen_game.players[1].controllable :
-                        print("你获得1个有效期", new_slot, "回合的空槽位")
+                        print(Texts.R_TEMP_SLOT_SENT.string.format(new_slot))
                     else :
-                        print("玩家", i, "获得1个有效期", new_slot,
-                              "回合的空槽位")
+                        print(Texts.PLAYER_TEMP_SLOT_SENT.string.format(
+                            new_slot, i
+                        ))
                 elif i == 0 and not chosen_game.players[1].controllable :
-                    print("你获得1个永久空槽位")
+                    print(Texts.R_PERMASLOT_SENT)
                 else :
-                    print("玩家", i, "获得1个永久空槽位")
+                    print(Texts.PLAYER_PERMASLOT_SENT.string.format(i))
         else :
             new_slot: Optional[int]
             if nightmare :
@@ -359,9 +360,9 @@ while 1 :
                 new_slot = chosen_game.send_slot(player)
             if new_slot is not None :
                 if new_slot > 0 :
-                    print("恶魔获得1个有效期", new_slot, "回合的空槽位")
+                    print(Texts.E_TEMP_SLOT_SENT.string.format(new_slot))
                 else :
-                    print("恶魔获得1个永久空槽位")
+                    print(Texts.E_PERMASLOT_SENT)
     any_player_has_tools: bool = False
     for i, player in chosen_game.players.items() :
         if chosen_game.has_tools(player=player) :
@@ -407,11 +408,10 @@ while 1 :
         if not (chosen_game.players[0].alive and chosen_game.players[1].alive):
             break
         if chosen_game.players[0].stopped_turns > 0 :
-            print("感觉...头晕晕的...要变成{0}了~".format(cat_girl))
+            print(Texts.R_DAZING.string.format(cat_girl))
         elif chosen_game.players[1].stopped_turns > 0 :
-            print("哈哈哈哈,对方被敲晕了,还是我的回合!" if
-                  chosen_game.players[1].controllable else
-                  "哈哈哈哈,恶魔被敲晕了,还是我的回合!")
+            print(Texts.OPPO_DAZING if chosen_game.players[1].controllable else
+                  Texts.E_DAZING)
         gamesave.active_gametime += time() - gametime_time_start
         if chosen_game.players[chosen_game.turn_orders[0]].controllable :
             if debug :
@@ -433,15 +433,16 @@ while 1 :
             else :
                 if sum(x.controllable
                        for x in chosen_game.players.values()) < 2 :
-                    print("本轮由你操作")
+                    print(Texts.YOUR_TURN)
                 else :
-                    print("本轮由玩家", chosen_game.turn_orders[0], "操作")
+                    print(Texts.PLAYER_TURN.string.format(
+                        chosen_game.turn_orders[0]
+                    ))
                 print(
-                    "请选择:1朝对方开枪,0朝自己开枪,7打开道具库,8查看对方道具"\
-                    if chosen_game.has_tools() or any(
+                    Texts.OPER_CHOOSE_1078 if chosen_game.has_tools() or any(
                         x.count_tools(None) < len(x.slots)
                         for x in chosen_game.players.values()
-                    ) else "请选择:1朝对方开枪,0朝自己开枪"
+                    ) else Texts.OPER_CHOOSE_10
                 )
                 try :
                     operation = int(input())
@@ -454,7 +455,7 @@ while 1 :
             ) :
                 player = chosen_game.players[chosen_game.turn_orders[0]]
                 victim =chosen_game.players[0+(not chosen_game.turn_orders[0])]
-                print("道具库:")
+                print(Texts.TOOL_WAREHOUSE)
                 tools_existence: Dict[int, int] = {}
                 permaslots: Dict[int, int] = {}
                 for slotid, slot in enumerate(player.slots) :
@@ -467,27 +468,32 @@ while 1 :
                         tools_existence[slot[1]] = slotid
                 for k, v in permaslots.items() :
                     if v > 1 :
-                        print("(*{0})".format(v), "道具", k, ":",
-                              chosen_game.tools[k][0])
+                        print(Texts.TOOL_NAME_MORE.string.format(
+                            k, chosen_game.tools[k][0], v
+                        ))
                     else :
-                        print("道具", k, ":", chosen_game.tools[k][0])
+                        print(Texts.TOOL_NAME_ONE.string.format(
+                            k, chosen_game.tools[k][0]
+                        ))
                     if chosen_game.tools[k][1] is None :
-                        print("此道具无描述")
+                        print(Texts.TOOL_NO_DESC)
                     else :
-                        print("描述:", chosen_game.tools[k][1])
+                        print(Texts.TOOL_DESC, chosen_game.tools[k][1])
                 for slot in player.slots :
                     if slot[1] is not None and slot[0] > 0 :
-                        print("道具", slot[1], ":",
-                              chosen_game.tools[slot[1]][0])
+                        print(Texts.TOOL_NAME_ONE.string.format(
+                            slot[1], chosen_game.tools[slot[1]][0]
+                        ))
                         if chosen_game.tools[slot[1]][1] is None :
-                            print("此道具无描述")
+                            print(Texts.TOOL_NO_DESC)
                         else :
-                            print("描述:", chosen_game.tools[slot[1]][1])
-                        print("还有", slot[0], "回合到期")
+                            print(Texts.TOOL_DESC,
+                                  chosen_game.tools[slot[1]][1])
+                        print(Texts.SLOT_EXPIRED_AT.string.format(slot[0]))
                 if not tools_existence :
-                    print("(空)")
+                    print(Texts.TOOL_WAREHOUSE_EMPTY)
                 while tools_existence :
-                    print("返回请直接按回车")
+                    print(Texts.ENTER_TO_RETURN)
                     to_use: Optional[int] = None
                     try:
                         to_use = int(input("使用道具请输入它的对应编号:"))
@@ -1343,26 +1349,30 @@ while 1 :
                             permaslots[slot[1]] = 1
                 for k, v in permaslots.items() :
                     if v > 1 :
-                        print("(*{0})".format(v), "道具", k, ":",
-                              chosen_game.tools[k][0])
+                        print(Texts.TOOL_NAME_MORE.string.format(
+                            k, chosen_game.tools[k][0], v
+                        ))
                     else :
-                        print("道具", k, ":", chosen_game.tools[k][0])
+                        print(Texts.TOOL_NAME_ONE.string.format(
+                            k, chosen_game.tools[k][0]
+                        ))
                     if chosen_game.tools[k][1] is None :
-                        print("此道具无描述")
+                        print(Texts.TOOL_NO_DESC)
                     else :
-                        print("描述:", chosen_game.tools[k][1])
+                        print(Texts.TOOL_DESC, chosen_game.tools[k][1])
                 for slot in player.slots :
                     if slot[1] is not None and slot[0] > 0 :
-                        e_has_tool = True
-                        print("道具", slot[1], ":",
-                              chosen_game.tools[slot[1]][0])
+                        print(Texts.TOOL_NAME_ONE.string.format(
+                            slot[1], chosen_game.tools[slot[1]][0]
+                        ))
                         if chosen_game.tools[slot[1]][1] is None :
-                            print("此道具无描述")
+                            print(Texts.TOOL_NO_DESC)
                         else :
-                            print("描述:", chosen_game.tools[slot[1]][1])
-                        print("还有", slot[0], "回合到期")
+                            print(Texts.TOOL_DESC,
+                                  chosen_game.tools[slot[1]][1])
+                        print(Texts.SLOT_EXPIRED_AT.string.format(slot[0]))
                 if not e_has_tool :
-                    print("(空)")
+                    print(Texts.TOOL_WAREHOUSE_EMPTY)
             elif operation == 1 :
                 player = chosen_game.players[chosen_game.turn_orders[0]]
                 victim =chosen_game.players[0+(not chosen_game.turn_orders[0])]

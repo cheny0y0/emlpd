@@ -1032,6 +1032,28 @@ class Texts :
         "随着槽位的到期,玩家 {1} 的 {0} 不翼而飞",
         en_en="Player {1}'s {0} went AWOL with the slot expired"
     )
+    R_TEMP_SLOT_SENT: ClassVar[I18nText] = I18nText(
+        "你获得1个有效期 {0} 回合的空槽位",
+        en_en="You've got 1 empty slot with active time for {0} round(s)"
+    )
+    E_TEMP_SLOT_SENT: ClassVar[I18nText] = I18nText(
+        "恶魔获得1个有效期 {0} 回合的空槽位",
+        en_en="The Evil's got 1 empty slot with active time for {0} round(s)"
+    )
+    PLAYER_TEMP_SLOT_SENT: ClassVar[I18nText] = I18nText(
+        "玩家 {1} 获得1个有效期 {0} 回合的空槽位",
+        en_en="Player {1}'s got 1 empty slot with active time for {0} round(s)"
+    )
+    R_PERMASLOT_SENT: ClassVar[I18nText] = I18nText(
+        "你获得1个永久空槽位", en_en="You've got 1 empty permanent slot"
+    )
+    E_PERMASLOT_SENT: ClassVar[I18nText] = I18nText(
+        "恶魔获得1个永久空槽位", en_en="The Evil's got 1 empty permanent slot"
+    )
+    PLAYER_PERMASLOT_SENT: ClassVar[I18nText] = I18nText(
+        "玩家 {0} 获得1个永久空槽位",
+        en_en="Player {0}'s got 1 empty permanent slot"
+    )
     R_TOOL_SENT: ClassVar[I18nText] = I18nText(
         "你获得 {0} 个道具", en_en="You've got {0} tool(s)"
     )
@@ -1049,4 +1071,53 @@ class Texts :
     )
     PROBLEM_SAVING: ClassVar[I18nText] = I18nText(
         "存档时遇到问题!", en_en="Problem saving!"
+    )
+    R_DAZING: ClassVar[I18nText] = I18nText(
+        "感觉...头晕晕的...要变成{0}了~",
+        en_en="Feel...dizzy...turning into {0}~"
+    )
+    E_DAZING: ClassVar[I18nText] = I18nText(
+        "哈哈哈哈,恶魔被敲晕了,还是我的回合!",
+        en_en="Hahahaha, the Evil's dazing, still my round!"
+    )
+    OPPO_DAZING: ClassVar[I18nText] = I18nText(
+        "哈哈哈哈,对方被敲晕了,还是我的回合!",
+        en_en="Hahahaha, the opposite's dazing, still my round!"
+    )
+    YOUR_TURN: ClassVar[I18nText] = I18nText(
+        "本轮由你操作", en_en="It's time for your operation"
+    )
+    PLAYER_TURN: ClassVar[I18nText] = I18nText(
+        "本轮由玩家 {0} 操作", en_en="It's time for Player {0}'s operation"
+    )
+    OPER_CHOOSE_1078: ClassVar[I18nText] = I18nText(
+        "请选择:1朝对方开枪,0朝自己开枪,7打开道具库,8查看对方道具",
+        en_en="Please choose: 1 to shoot at the opposite, 0 to shoot at "
+              "yourself, 7 to open tool warehouse, 8 to view the opposite's "
+              "tools"
+    )
+    OPER_CHOOSE_10: ClassVar[I18nText] = I18nText(
+        "请选择:1朝对方开枪,0朝自己开枪",
+        en_en="Please choose: 1 to shoot at the opposite, 0 to shoot at "
+              "yourself"
+    )
+    TOOL_WAREHOUSE: ClassVar[I18nText] = I18nText(
+        "道具库:", en_en="Tool Warehouse:"
+    )
+    TOOL_NAME_ONE: ClassVar[I18nText] = I18nText(
+        "道具 {0}: {1}", en_en="Tool {0}: {1}"
+    )
+    TOOL_NAME_MORE: ClassVar[I18nText] = I18nText(
+        "(*{2}) 道具 {0}: {1}", en_en="(*{2}) Tool {0}: {1}"
+    )
+    TOOL_NO_DESC: ClassVar[I18nText] = I18nText(
+        "此道具无描述", en_en="No description for this tool"
+    )
+    TOOL_DESC: ClassVar[I18nText] = I18nText("描述:", en_en="Description:")
+    SLOT_EXPIRED_AT: ClassVar[I18nText] = I18nText(
+        "还有 {0} 回合到期", en_en="Will be expired {0} round(s) later"
+    )
+    TOOL_WAREHOUSE_EMPTY: ClassVar[I18nText] = I18nText("(空)",en_en="(empty)")
+    ENTER_TO_RETURN: ClassVar[I18nText] = I18nText(
+        "返回请直接按回车", en_en="Press enter directly to return"
     )
