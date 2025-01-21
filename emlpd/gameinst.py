@@ -1121,3 +1121,137 @@ class Texts :
     ENTER_TO_RETURN: ClassVar[I18nText] = I18nText(
         "返回请直接按回车", en_en="Press enter directly to return"
     )
+    INPUT_ID_TO_USE: ClassVar[I18nText] = I18nText(
+        "使用道具请输入其对应编号:", en_en="Input the tool's ID to use it:"
+    )
+    R_USES_ID2: ClassVar[I18nText] = I18nText(
+        "你使用了小刀,结果会如何呢?真让人期待",
+        en_en="You've used 小刀, what will the result be? Let's wait and see"
+    )
+    R_USES_ID3: ClassVar[Tuple[I18nText, I18nText]] = I18nText(
+        "你排出了一颗空弹", en_en="You've made a false bullet quit"
+    ), I18nText("你排出了一颗实弹", en_en="You've made a true bullet quit")
+    R_USES_ID4: ClassVar[I18nText] = I18nText(
+        "恭喜你,成功敲晕了对方!",
+        en_en="Conguatulations to you for hitting the opposite to dazing!"
+    )
+    R_USES_ID5: ClassVar[Tuple[I18nText, I18nText]] = I18nText(
+        "因为你的不诚实,你并未回复生命,甚至失去了道德的崇高赞许",
+        en_en="Due to your dishonesty, you didn't regain a HP, and even lost "
+              "道德的崇高赞许"
+    ), I18nText(
+        "你使用了道德的崇高赞许,回复了1点生命",
+        en_en="You've used 道德的崇高赞许 and regained 1 HP"
+    )
+    R_USES_ID6: ClassVar[Tuple[I18nText, I18nText]] = (
+        I18nText("当前的子弹为空弹", en_en="The current bullet is false"),
+        I18nText("当前的子弹为实弹", en_en="The current bullet is true")
+    )
+    TOOL_PLUS_1: ClassVar[I18nText] = \
+    I18nText("+1 道具 {0}", en_en="+1 Tool {0}")
+    R_USES_ID9: ClassVar[I18nText] = \
+    I18nText("你穿上了一件防弹衣", en_en="You've put a 防弹衣 on")
+    R_USES_ID11: ClassVar[I18nText] = \
+    I18nText("你摇出了 {0} 点", en_en="You've rolled out {0} points")
+    R_LOST_2_HP: ClassVar[I18nText] = \
+    I18nText("你失去了2点生命", en_en="You've lost 2 HP")
+    R_LOST_1_HP: ClassVar[I18nText] = \
+    I18nText("你失去了1点生命", en_en="You've lost 1 HP")
+    R_GOT_1_HP: ClassVar[I18nText] = \
+    I18nText("你获得了1点生命", en_en="You've got 1 HP")
+    R_ATTACK_BOOSTED_2: ClassVar[I18nText] = I18nText(
+        "你的攻击力提高了2点", en_en="Your attack damage has increased by 2"
+    )
+    OPPO_LOST_1_HP: ClassVar[I18nText] = \
+    I18nText("对方失去了1点生命", en_en="The opposite has lost 1 HP")
+    E_LOST_1_HP: ClassVar[I18nText] = \
+    I18nText("恶魔失去了1点生命", en_en="The Evil has lost 1 HP")
+    OPPO_LOST_2_HP: ClassVar[I18nText] = \
+    I18nText("对方失去了2点生命", en_en="The opposite has lost 2 HP")
+    E_LOST_2_HP: ClassVar[I18nText] = \
+    I18nText("恶魔失去了2点生命", en_en="The Evil has lost 2 HP")
+    OPPO_CRIT: ClassVar[I18nText] = \
+    I18nText("对方受到暴击!!!", en_en="The opposite CRIT!!!")
+    OPPO_CUR_HP: ClassVar[I18nText] = \
+    I18nText("对方生命值: {0}", en_en="The opposite's HP: {0}")
+    E_CRIT: ClassVar[I18nText] = \
+    I18nText("恶魔受到暴击!!!", en_en="The Evil CRIT!!!")
+    E_CUR_HP: ClassVar[I18nText] = \
+    I18nText("恶魔生命值: {0}", en_en="The Evil's HP: {0}")
+    R_TURNED_INTO_OPPO: ClassVar[I18nText] = \
+    I18nText("你变成了对方的样子", en_en="You've turned into the opposite")
+    R_TURNED_INTO_E: ClassVar[I18nText] = \
+    I18nText("你变成了恶魔的样子", en_en="You've turned into the Evil")
+    OPPO_TURNED_INTO_R: ClassVar[I18nText] = \
+    I18nText("对方变成了你的样子", en_en="The opposite has turned into you")
+    E_TURNED_INTO_R: ClassVar[I18nText] = \
+    I18nText("恶魔变成了你的样子", en_en="The Evil has turned into you")
+    CLIP_CHANGED: ClassVar[I18nText] = \
+    I18nText("弹夹有变动", en_en="The clip has changed")
+    BEFORE_USE_ID16: ClassVar[I18nText] = I18nText(
+        "输入0以开始重整弹药,直接按回车以取消。",
+        en_en="Input 0 to start arranging bullets or press enter directly to "
+              "cancel."
+    )
+    DURING_USE_ID16: ClassVar[Tuple[I18nText, I18nText]] = \
+    (I18nText("空", en_en="F"), I18nText("实", en_en="T"))
+    R_USES_ID16: ClassVar[I18nText] = \
+    I18nText("你重整了一下弹药", en_en="You've arranged the bullets")
+    BEFORE_USE_ID22_1: ClassVar[I18nText] = I18nText(
+        "弹夹内只有1发子弹,将其取出会即刻进入下一回合,是否将其取出?(y/[N])",
+        en_en="There's only 1 bullet in the clip, drawing it out will make "
+              "next round come immediately, proceed? (y/[N])"
+    )
+    R_USES_ID22: ClassVar[I18nText] = \
+    I18nText("你取出了一颗子弹", en_en="You've drawn a bullet out")
+    BEFORE_USE_ID22: ClassVar[I18nText] = I18nText(
+        "请输入要取出子弹的编号(0~{0},0为当前子弹,输入其它以取消):",
+        en_en="Please input the number of the bullet to draw out(0~{0}, 0 "
+              "stands for the current bullet, input other content to cancel):"
+    )
+    BEFORE_USE_ID23: ClassVar[I18nText] = I18nText(
+        "请输入要插入空弹的编号(0~{0},0为当前子弹之前,输入其它以取消):",
+        en_en="Please input the number of the false bullet to insert(0~{0}, 0 "
+              "stands for the place before the cureent bullet, input other "
+              "content to cancel):"
+    )
+    R_USES_ID23: ClassVar[I18nText] = \
+    I18nText("你放入了一颗空弹", en_en="You've put a false bullet in")
+    BEFORE_USE_ID24: ClassVar[I18nText] = I18nText(
+        "请输入要插入实弹的编号(0~{0},0为当前子弹之前,输入其它以取消):",
+        en_en="Please input the number of the true bullet to insert(0~{0}, 0 "
+              "stands for the place before the cureent bullet, input other "
+              "content to cancel):"
+    )
+    R_USES_ID24: ClassVar[I18nText] = \
+    I18nText("你放入了一颗实弹", en_en="You've put a true bullet in")
+    BEFORE_USE_ID25: ClassVar[I18nText] = I18nText(
+        "请输入要插入神秘子弹的编号(0~{0},0为当前子弹之前,输入其它以取消):",
+        en_en="Please input the number of the 神秘子弹 to insert(0~{0}, 0 "
+              "stands for the place before the cureent bullet, input other "
+              "content to cancel):"
+    )
+    R_USES_ID25: ClassVar[I18nText] = \
+    I18nText("你放入了一颗神秘子弹", en_en="You've put a 神秘子弹 in")
+    R_USES_ID26: ClassVar[I18nText] = \
+    I18nText("你使用了绷带", en_en="You've used a 绷带")
+    R_USES_ID27_5: ClassVar[I18nText] = I18nText(
+        "你使用了医疗包,回复了5点生命",
+        en_en="You've used 医疗包 and regained 5 HP"
+    )
+    R_USES_ID27_4: ClassVar[I18nText] = I18nText(
+        "你使用了医疗包,回复了4点生命",
+        en_en="You've used 医疗包 and regained 4 HP"
+    )
+    R_USES_ID27_3: ClassVar[I18nText] = I18nText(
+        "你使用了医疗包,回复了3点生命",
+        en_en="You've used 医疗包 and regained 3 HP"
+    )
+    R_USES_ID27_2: ClassVar[I18nText] = I18nText(
+        "你使用了医疗包,回复了2点生命",
+        en_en="You've used 医疗包 and regained 2 HP"
+    )
+    R_USES_ID27_1: ClassVar[I18nText] = I18nText(
+        "你使用了医疗包,回复了1点生命",
+        en_en="You've used 医疗包 and regained 1 HP"
+    )
