@@ -118,35 +118,35 @@ For HP, hurting point, stamina, tool warehouse, stacked goodgun(foo), stacked
 goodgun(bar), additional damage of current turn, bulletproof wearings, stacked
 bullet catcher, stacked repeater, stacked combo shooter, stacked badgun,
 stacked bandage, there is a probability of 50% that yours become the
-opposite's, and tells “你变成了恶魔的样子”; there is a probability of 50% that
-the opposite's become yours, and tells “恶魔变成了你的样子”. The two are
-opposite event.  
+opposite's, and tells “You've turned into the Evil”; there is a probability of
+50% that the opposite's become yours, and tells “The Evil has turned into you”.
+The two are opposite events.  
 And your and the opposite's dazing turns will become 0.
 ##### Tool 14: Jiē Dàn Tào
 Let your stacked bullet catcher increase by 1. Suppose you currently have
 _n_(_n_∈**N₊**) stacked bullet catchers, the opposite's additional damage is
 _m_(_m_∈**N**), if the opposite shoots 1 true bullet, there is a probability of
 (1−0.8*ⁿ*)/(1+_m_) that you will catch it(avoids the damage from the bullet and
-tells you “你接住了一颗子弹”) and put it into the tail of the main clip, and
+tells you “You caught a bullet”) and put it into the tail of the main clip, and
 let your stacked bullet catcher be 0; if the opposite shoots 1 false bullet,
-there is a probability of 0.8/(1+_m_) that you will catch it(tells you
-“你接住了一颗子弹”) and put it into the tail of the main clip, and let your
+there is a probability of 0.8/(1+_m_) that you will catch it(tells you “You
+caught a bullet”) and put it into the tail of the main clip, and let your
 stacked bullet catcher decrease by 1.
 ##### Tool 15: Tián Shí
 Suppose there are _n_(_n_∈**N₊**) bullets in the main clip now, then for
 each false bullet in the main clip there is a probability of 1/_n_ that it will
 become a true bullet. If at least one false bullet becomes a true bullet, the
-message “弹夹有变动” will be displayed.
+message “The clip has changed” will be displayed.
 ##### Tool 16: Chóng Zhěng Dàn Yào
 Temporarily take all bullets in the main clip out and put them back to the main
 clip one by one. You can specify where to put each bullet, but whether it is a
 true bullet or a false bullet that is put back in will only be shown when it is
-put in. For example, in the following case: `0实1空2实3实4空5`, inputting `0`
-will place one bullet in the outermost part of the main clip, inputting `5`
-will place one bullet in the innermost part of the main clip, and inputting `3`
-will place one bullet in the location of the two continuous true bullets in the
-example. After all bullets have been put, the message “你重整了一下弹药” will
-be displayed.
+put in. For example, in the following case: `0T1F2T3T4F5`, inputting `0` will
+place one bullet in the outermost part of the main clip, inputting `5` will
+place one bullet in the innermost part of the main clip, and inputting `3` will
+place one bullet in the location of the two continuous true bullets in the
+example. After all bullets have been put, the message “You've arranged the
+bullets” will be displayed.
 ##### Tool 17: Shuāng Fā Shè Shǒu
 Let your stacked repeater count increase by 1.  
 _See Tool 18: **Lián Fā Shè Shǒu**_
@@ -236,15 +236,15 @@ wins the stage battle and then receives the sum of their bets' HPs, and the
 stage battle ends.
 ##### Tool 33: Qiāng Tǒng Wéi Xiū
 Make the explosion exponent 2/3 of what it was(floored) and tell you
-“你维修了一下枪筒”. If the explosion exponent is less than or equal to 0, this
-tool will not be used.
+“You've mended the barrel”. If the explosion exponent is less than or equal to
+0, this tool will not be used.
 ##### Tool 34: Kōng Shí Fēn Lí
 For each clip, move all true bullets in it to the outermost place, all false
-bullets in it to the innermost place and prompt “弹夹进行了空实分离”.
+bullets in it to the innermost place and prompt “The clip has done 空实分离”.
 ##### Tool 35: Dàn Jiá Hé Bìng
 Move the bullets in each extra clip (0→1→2 order) to the end of the main clip
-in their original order, and prompt “你合并了一下弹夹”. If there are no extra
-clips or no bullets in all extra clips, this tool will not be used.
+in their original order, and prompt “You've merged the clips”. If there are no
+extra clips or no bullets in all extra clips, this tool will not be used.
 ### Game Mode Introduction
 #### 1. Pǔ Tōng Mó Shì
 Only 1 period.  
@@ -376,14 +376,14 @@ import emlpd.__main__ # type: ignore # import cannot be omitted!
 ```
 And run the script above, you will see:
 ```text
-Game Mode 9 : Game Mode Name
+Game Mode 9: Game Mode Name
 Introduction: Game Mode Description
 ```
 Input `9` for entering custom game mode.
 ## Classic Gameplay
 ### Run
 Python 3.6 or above is required.  
-Type `python -m emlpd.classic` in the terminal.
+Type `python -m emlpd.classic lang=en_en` in the terminal.
 ### Game Rule Introduction
 You need to follow the hints given to you in the game interface to defeat the
 Evil. To defeat the Evil, you need to make the Evil's HP 0 or less and your HP

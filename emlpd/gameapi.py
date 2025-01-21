@@ -18,8 +18,8 @@ import sys
 from math import ceil
 from random import choice, randint, random
 import struct
-from typing import Callable, ClassVar, Dict, Iterable, List, Optional, Tuple, \
-                   Union, no_type_check
+from typing import Any, Callable, ClassVar, Dict, Iterable, List, Optional, \
+                   Tuple, Union, no_type_check
 
 if sys.version_info >= (3, 13) :
     from warnings import deprecated
@@ -56,6 +56,36 @@ class I18nText :
 
     def __str__(self) -> str :
         return self.string
+
+    def format(self, *args: object, **kwargs: object) -> str :
+        try :
+            return self.string.format(*args, **kwargs)
+        except (IndexError, KeyError) :
+            return self.string
+
+    def __add__(self, other: str) -> "I18nText" :
+        a: str = other.replace("{", "{{").replace("}", "}}")
+        return type(self)(self.defaulted+a,
+                          **{k: v+a for k, v in self.translations.items()})
+
+    def __radd__(self, other: str) -> "I18nText" :
+        a: str = other.replace("{", "{{").replace("}", "}}")
+        return type(self)(a+self.defaulted,
+                          **{k: a+v for k, v in self.translations.items()})
+
+    def __mul__(self, other: int) -> "I18nText" :
+        return type(self)(self.defaulted*other,
+                          **{k: v*other for k, v in self.translations.items()})
+
+    def __rmul__(self, other: int) -> "I18nText" :
+        return type(self)(self.defaulted*other,
+                          **{k: v*other for k, v in self.translations.items()})
+
+    def __mod__(self, other: Any) -> str :
+        try :
+            return self.format(**other)
+        except TypeError :
+            return self.format(*other)
 
 class ShootResultAnalyzer :
     @staticmethod

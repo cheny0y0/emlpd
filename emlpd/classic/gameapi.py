@@ -17,9 +17,9 @@
 from random import choice, randint
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
-from ..gameapi import VER, VER_STRING, GameSave
+from ..gameapi import VER, VER_STRING, I18nText, GameSave
 
-__all__ = ["VER", "VER_STRING", "Game", "GameSave"]
+__all__ = ["VER", "VER_STRING", "I18nText", "Game", "GameSave"]
 
 class Game :
     tools: Dict[int, Tuple[str, str]]

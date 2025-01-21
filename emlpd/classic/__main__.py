@@ -21,17 +21,24 @@ from sys import argv
 from time import sleep, time
 from typing import Callable, Optional
 
-from .gameapi import GameSave, VER_STRING
-from .gameinst import CLASSIC_MODE
+from .gameapi import I18nText, GameSave, VER_STRING
+from .gameinst import CLASSIC_MODE, Texts
 
 gamesave: GameSave = GameSave()
+gamesave_filename: str = "emlpd.dat"
+
+for i in argv[1:] :
+    if i.startswith("lang=") :
+        I18nText.selected_lang = i[5:]
+    elif i.startswith("save=") :
+        gamesave_filename = i[5:]
 
 EXP_MUL_CALC: Callable[[int], float] = lambda x: (
     (16*(-0.5*log((0.0625*x-120)**2+1)+atan(0.0625*x-120)*(0.0625*x-120))+
      1.5625*x)/32768+1-0.08921291791932255
 )*((1+x/65536)**0.5)
 
-print("恶魔轮盘赌（重构版） v"+VER_STRING)
+print(Texts.GAME_TITLE, "v"+VER_STRING)
 debug: bool = "debug" in argv[1:]
 nightmare: bool = "nightmare" in argv[1:]
 show_pp: bool = "show_pp" in argv[1:]
@@ -42,14 +49,17 @@ cat_girl: str = chr(
         ((date.today().month<<5)|date.today().day==129))
 
 try :
-    with open("emlpd.dat", "rb") as gamesave_file :
+    with open(gamesave_filename, "rb") as gamesave_file :
         gamesave = GameSave.unserialize(gamesave_file.read())
 except FileNotFoundError :
     pass
 except Exception as err :
     if debug :
         print(repr(err))
-    input("读取存档遇到问题。按下回车创建一个新的存档。")
+    input(I18nText(
+        "读取存档遇到问题。按下回车创建一个新的存档。",
+        en_en="Problem reading game save. Press enter to create a new save."
+    ))
 
 if nightmare :
     print("警告：梦魇模式已激活。恶魔会变得无比强大！！！")
@@ -63,9 +73,11 @@ print("“现在开始我们的游戏吧”")
 if not skipthread :
     sleep(1.5)
 
-print("当前等级:", gamesave.level)
-print("当前经验:", gamesave.exp, "/", 250*(gamesave.level+1))
-print("当前金币数:", gamesave.coins, "/ 65535")
+print(I18nText("当前等级:", en_en="Current LVL:"), gamesave.level)
+print(I18nText("当前经验:", en_en="Current EXP:"), gamesave.exp, "/",
+      250*(gamesave.level+1))
+print(I18nText("当前金币数:", en_en="Current gold coin count:"),
+      gamesave.coins, "/ 65535")
 if not skipthread :
     sleep(2)
 
@@ -124,10 +136,10 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
     while CLASSIC_MODE.bullets :
         gametime_time_start = time()
         try :
-            with open("emlpd.dat", "wb") as gamesave_file :
+            with open(gamesave_filename, "wb") as gamesave_file :
                 gamesave_file.write(gamesave.serialize())
         except OSError as err :
-            print("存档时遇到问题!", err)
+            print(Texts.PROBLEM_SAVING, err)
         if CLASSIC_MODE.r_hp <= 0 or CLASSIC_MODE.e_hp < -1 or \
            (CLASSIC_MODE.e_hp <= 0 and CLASSIC_MODE.yourturn) :
             break
@@ -157,8 +169,8 @@ while CLASSIC_MODE.r_hp > 0 and CLASSIC_MODE.e_hp > 0 :
                     else :
                         print(*i[0], sep=i[1], end=i[2])
             if show_pp :
-                print("当前你的表现分:", r_pp)
-                print("当前恶魔表现分:", e_pp)
+                print(Texts.R_CUR_PP.format(r_pp))
+                print(Texts.E_CUR_PP.format(e_pp))
             print("当前为你的回合")
             print(
                 "请选择：1朝对方开枪，0朝自己开枪，7打开道具库，8查看对方道具"
@@ -484,8 +496,7 @@ else :
 gamesave.play_periods += 1
 gamesave.game_runs += 1
 print("================================")
-print("本次游戏持续了", total_turn_count, "轮,")
-print(total_round_count, "回合")
+print(Texts.GAME_COUNT_INFO.format(total_turn_count, total_round_count))
 
 if CLASSIC_MODE.e_hp < 0 :
     r_pp -= CLASSIC_MODE.e_hp * 320
@@ -493,16 +504,16 @@ if CLASSIC_MODE.r_hp < 0 :
     e_pp -= CLASSIC_MODE.r_hp * 320
 
 if show_pp :
-    print("表现分:", r_pp, "-", e_pp)
+    print(Texts.PP.format(r_pp, e_pp))
 
 if r_pp > e_pp :
     earned_exp: int = \
     round((r_pp-e_pp)*log(total_turn_count)*EXP_MUL_CALC(r_pp)/128.)
     gamesave.add_exp(earned_exp)
-    print("你获得了", earned_exp, "经验")
+    print(Texts.GAIN_EXP.format(earned_exp))
 
 try :
-    with open("emlpd.dat", "wb") as gamesave_file :
+    with open(gamesave_filename, "wb") as gamesave_file :
         gamesave_file.write(gamesave.serialize())
 except OSError as err :
-    print("存档时遇到问题!", err)
+    print(Texts.PROBLEM_SAVING, err)

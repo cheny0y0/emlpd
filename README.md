@@ -1,4 +1,5 @@
 # 恶魔轮盘赌（重构版）
+[English](README-en.md)
 ## 正常玩法
 ### 运行
 需要 Python 3.6 或更高版本的 Python。  

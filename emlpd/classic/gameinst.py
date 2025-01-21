@@ -14,9 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .gameapi import Game
+from typing import ClassVar
+from .gameapi import I18nText, Game
 
-__all__ = ["CLASSIC_MODE"]
+__all__ = ["CLASSIC_MODE", "Texts"]
 
 CLASSIC_MODE: Game = Game(
     2,
@@ -57,3 +58,23 @@ CLASSIC_MODE: Game = Game(
     8,
     True
 )
+
+class Texts :
+    GAME_TITLE: ClassVar[I18nText] = I18nText(
+        "恶魔轮盘赌（重构版）",
+        en_en="Evil's Mutual Linear Probability Detection"
+    )
+    PROBLEM_SAVING: ClassVar[I18nText] = \
+    I18nText("存档时遇到问题!", en_en="Problem saving!")
+    R_CUR_PP: ClassVar[I18nText] = \
+    I18nText("当前你的表现分: {0}", en_en="Your current PP: {0}")
+    E_CUR_PP: ClassVar[I18nText] = \
+    I18nText("当前恶魔表现分: {0}", en_en="The Evil's current PP: {0}")
+    GAME_COUNT_INFO: ClassVar[I18nText] = I18nText(
+        "本次游戏持续了 {0} 轮,\n{1} 回合",
+        en_en="This game kept {0} turn(s),\n{1} round(s)"
+    )
+    PP: ClassVar[I18nText] = \
+    I18nText("表现分: {0} - {1}", en_en="Performance Point: {0} - {1}")
+    GAIN_EXP: ClassVar[I18nText] = \
+    I18nText("你获得了 {0} 经验", en_en="You've gained {0} EXP")
