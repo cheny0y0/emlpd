@@ -9,15 +9,16 @@ with open("README-en.md", "r", encoding="utf-8") as fh :
 
 setuptools.setup(
     name="emlpd",
-    version=VER_STRING,
+    version=VER_STRING+".post2",
     author="REGE",
     author_email="junyu336699@sina.com",
-    description="Python \u5c0f\u6e38\u620f API "
-                "\u53ca\u5b9e\u73b0\uff1a\u6076\u9b54\u8f6e\u76d8\u8d4c",
+    description="Python Minigame API & Implementation: Evil's Mutual Linear "
+                "Probability Detection ",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="http://github.com/cheny0y0/emlpd",
     packages=setuptools.find_packages(exclude="test"),
+    python_requires=">=3.6",
     classifiers=(
         "Environment :: Console",
         "Intended Audience :: Developers",
