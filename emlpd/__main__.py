@@ -225,7 +225,7 @@ while 1 :
                         parent_game.players[0].hp += sub_game.tot_hp
                 elif not sub_game.players[0].alive :
                     print(Texts.E_WON_STAGE)
-                    parent_game.players[1] += sub_game.tot_hp
+                    parent_game.players[1].hp += sub_game.tot_hp
                 elif not sub_game.players[1].alive :
                     print(Texts.R_WON_STAGE)
                     parent_game.players[0].hp += sub_game.tot_hp
@@ -1671,7 +1671,7 @@ while 1 :
                                     victim.hurts += 1
                                     assert 0 <= victim.hurts < 9
                             else :
-                                print(Texts.R_FALSE_ON_R)
+                                print(Texts.R_FALSE_ON_E)
                         else :
                             if bullets_i[0] :
                                 gamesave.success_selfshoot_trues += 1
