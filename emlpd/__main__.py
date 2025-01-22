@@ -22,8 +22,9 @@ from sys import argv
 from time import sleep, time
 from typing import Dict, Iterator, List, Optional, TYPE_CHECKING, Tuple
 
-from .gameapi import Game, GameSave, Player, ShootResult, Slot, VER_STRING
-from .gameinst import GAMEMODE_SET, NormalGame, NormalPlayer, StageGame
+from .gameapi import Game, GameSave, I18nText, Player, ShootResult, Slot, \
+                     VER_STRING
+from .gameinst import GAMEMODE_SET, NormalGame, NormalPlayer, StageGame, Texts
 
 print("""emlpd  Copyright (C) 2024-2025  REGE
 This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
@@ -32,58 +33,78 @@ under certain conditions; type `show c' for details.""")
 
 gamesave: GameSave = GameSave()
 gamemode_i: int = 1
+gamesave_filename: str = "emlpd.dat"
 
-print("恶魔轮盘赌（重构版） v"+VER_STRING)
+for i in argv[1:] :
+    if i.startswith("lang=") :
+        I18nText.selected_lang = i[5:]
+    elif i.startswith("save=") :
+        gamesave_filename = i[5:]
+print(Texts.GAME_TITLE, "v"+VER_STRING)
 debug: bool = "debug" in argv[1:]
 nightmare: bool = "nightmare" in argv[1:]
 skipthread: bool = "skipthread" in argv[1:]
-cat_girl: str = chr(
+cat_girl: I18nText = I18nText(chr(
     32848+3365*(-1)**((date.today().month<<5)|date.today().day!=129)
 ) + chr(29888+6824*(-1)**((date.today().month<<5)|date.today().day!=129)+
-        ((date.today().month<<5)|date.today().day==129))
+        ((date.today().month<<5)|date.today().day==129)), en_en="Cat Girl")
 
 try :
-    with open("emlpd.dat", "rb") as gamesave_file :
+    with open(gamesave_filename, "rb") as gamesave_file :
         gamesave = GameSave.unserialize(gamesave_file.read())
 except FileNotFoundError :
     pass
 except Exception as err :
     if debug :
         print(repr(err))
-    input("读取存档遇到问题。按下回车创建一个新的存档。")
+    input(I18nText(
+        "读取存档遇到问题。按下回车创建一个新的存档。",
+        en_en="Problem reading game save. Press enter to create a new save."
+    ))
 
 if nightmare :
-    print("警告:梦魇模式已激活。恶魔会变得无比强大!!!")
-print("“哦!看看,又一个来送死的”")
+    print(I18nText(
+        "警告:梦魇模式已激活。恶魔会变得无比强大!!!",
+        en_en="WARNING: NIGHTMARE MODE ACTIVATED. THE EVIL WILL BE "
+              "EXTRAORDINARILY STRONG!!!"
+    ))
+print(I18nText(
+    "“哦!看看,又一个来送死的”",
+    en_en="“Oh! Look, someone looking for death again”"
+))
 if not skipthread :
     sleep(2.5)
-print("“希望你能让我玩的尽兴”")
+print(I18nText(
+    "“希望你能让我玩的尽兴”", en_en="“Hope you'll be played joyfully by me”"
+))
 if not skipthread :
     sleep(2.5)
-print("“现在开始我们的游戏吧”")
+print(I18nText("“现在开始我们的游戏吧”", en_en="“Let's now start our game”"))
 if not skipthread :
     sleep(1.5)
 
-print("当前等级:", gamesave.level)
-print("当前经验:", gamesave.exp, "/", 250*(gamesave.level+1))
-print("当前金币数:", gamesave.coins, "/ 65535")
+print(I18nText("当前等级:", en_en="Current LVL:"), gamesave.level)
+print(I18nText("当前经验:", en_en="Current EXP:"), gamesave.exp, "/",
+      250*(gamesave.level+1))
+print(I18nText("当前金币数:", en_en="Current gold coin count:"),
+      gamesave.coins, "/ 65535")
 if not skipthread :
     sleep(2)
 
-print("输入“stat”以查看统计信息。")
+print(I18nText("输入“stat”以查看统计信息。", en_en="Input “stat” for stats."))
 for k, v in GAMEMODE_SET.items() :
     if len(v) > 4 :
-        print("游戏模式", k, ":", v[3])
+        print(Texts.GAME_MODE.format(k), v[3])
         if v[4] is None :
-            print("没有介绍")
+            print(Texts.NO_INTRODUCTION)
         else :
-            print("介绍:", v[4])
+            print(Texts.INTRODUCTION, v[4])
     else :
-        print("游戏模式", k)
-        print("没有名字")
+        print(Texts.GAME_MODE, k)
+        print(Texts.NO_NAME)
 
 while 1 :
-    gamemode: str = input("选择游戏模式请输入对应的编号:")
+    gamemode: str = input(Texts.CHOOSE_GAME_MODE)
     try :
         gamemode_i = int(gamemode)
     except ValueError :
@@ -197,16 +218,16 @@ while 1 :
             if isinstance(sub_game, StageGame) :
                 if sub_game.players[1].controllable :
                     if not sub_game.players[0].alive :
-                        print("恭喜玩家 1 赢得了擂台战!")
+                        print(Texts.PLAYER_1_WON_STAGE)
                         parent_game.players[1].hp += sub_game.tot_hp
                     elif not sub_game.players[1].alive :
-                        print("恭喜玩家 0 赢得了擂台战!")
+                        print(Texts.PLAYER_0_WON_STAGE)
                         parent_game.players[0].hp += sub_game.tot_hp
                 elif not sub_game.players[0].alive :
-                    print("很遗憾,恶魔赢得了擂台战")
+                    print(Texts.E_WON_STAGE)
                     parent_game.players[1] += sub_game.tot_hp
                 elif not sub_game.players[1].alive :
-                    print("恭喜你,你赢得了擂台战!")
+                    print(Texts.R_WON_STAGE)
                     parent_game.players[0].hp += sub_game.tot_hp
             parent_game.subgame = None
             chosen_game = parent_game
@@ -227,20 +248,22 @@ while 1 :
                 sub_game = parent_game.subgame
                 chosen_game = parent_game if sub_game is None else sub_game
                 try :
-                    with open("emlpd.dat", "wb") as gamesave_file :
+                    with open(gamesave_filename, "wb") as gamesave_file :
                         gamesave_file.write(gamesave.serialize())
                 except OSError as err :
-                    print("存档时遇到问题!", err)
+                    print(Texts.PROBLEM_SAVING, err)
                 total_period_count += 1
                 gamesave.play_periods += 1
                 print("================")
-                print("本周目持续了", period_turn_count, "轮,")
-                print(period_round_count, "回合,")
+                print(Texts.PERIOD_COUNT_INFO.format(
+                    period_turn_count, period_round_count
+                ))
                 round_turn_count = 0
                 period_turn_count = 0
                 period_round_count = 0
                 base_attack = 1
-                print("=== 第", total_period_count, "周目 ===")
+                print("===", Texts.PERIOD_ORDINAL.format(total_period_count),
+                      "===")
             except StopIteration :
                 break
     round_turn_count = 0
@@ -292,14 +315,17 @@ while 1 :
         for tool_id in expired_slots :
             if tool_id is not None :
                 if i == 0 and not chosen_game.players[1].controllable :
-                    print("非常可惜,随着槽位的到期,你的",
-                          chosen_game.tools[tool_id][0], "也不翼而飞")
+                    print(Texts.R_SLOT_EXPIRED.format(
+                        chosen_game.tools[tool_id][0]
+                    ))
                 elif i == 1 and not chosen_game.players[1].controllable :
-                    print("非常高兴,随着槽位的到期,恶魔的",
-                          chosen_game.tools[tool_id][0], "不翼而飞")
+                    print(Texts.E_SLOT_EXPIRED.format(
+                        chosen_game.tools[tool_id][0]
+                    ))
                 else :
-                    print("随着槽位的到期,玩家", i, "的",
-                          chosen_game.tools[tool_id][0], "不翼而飞")
+                    print(Texts.R_SLOT_EXPIRED.format(
+                        chosen_game.tools[tool_id][0], i
+                    ))
     sleep(1)
     for i, player in chosen_game.players.items() :
         if player.controllable or i != 1 :
@@ -307,14 +333,13 @@ while 1 :
             if new_slot is not None :
                 if new_slot > 0 :
                     if i == 0 and not chosen_game.players[1].controllable :
-                        print("你获得1个有效期", new_slot, "回合的空槽位")
+                        print(Texts.R_TEMP_SLOT_SENT.format(new_slot))
                     else :
-                        print("玩家", i, "获得1个有效期", new_slot,
-                              "回合的空槽位")
+                        print(Texts.PLAYER_TEMP_SLOT_SENT.format(new_slot, i))
                 elif i == 0 and not chosen_game.players[1].controllable :
-                    print("你获得1个永久空槽位")
+                    print(Texts.R_PERMASLOT_SENT)
                 else :
-                    print("玩家", i, "获得1个永久空槽位")
+                    print(Texts.PLAYER_PERMASLOT_SENT.format(i))
         else :
             new_slot: Optional[int]
             if nightmare :
@@ -332,33 +357,34 @@ while 1 :
                 new_slot = chosen_game.send_slot(player)
             if new_slot is not None :
                 if new_slot > 0 :
-                    print("恶魔获得1个有效期", new_slot, "回合的空槽位")
+                    print(Texts.E_TEMP_SLOT_SENT.format(new_slot))
                 else :
-                    print("恶魔获得1个永久空槽位")
+                    print(Texts.E_PERMASLOT_SENT)
     any_player_has_tools: bool = False
     for i, player in chosen_game.players.items() :
         if chosen_game.has_tools(player=player) :
             any_player_has_tools = True
             if player.controllable or i != 1 :
                 if i == 0 and not chosen_game.players[1].controllable :
-                    print("你获得", chosen_game.send_tools(
+                    print(Texts.R_TOOL_SENT.format(chosen_game.send_tools(
                         player, GAMEMODE_SET[gamemode_i][1]
-                    ), "个道具")
+                    )))
                 else :
-                    print("玩家", i, "获得", chosen_game.send_tools(
+                    print(Texts.PLAYER_TOOL_SENT.format(chosen_game.send_tools(
                         player, GAMEMODE_SET[gamemode_i][1]
-                    ), "个道具")
+                    ), i))
             else :
-                print("恶魔获得", chosen_game.send_tools(
+                print(Texts.E_TOOL_SENT.format(chosen_game.send_tools(
                     player, GAMEMODE_SET[gamemode_i][1]
-                ), "个道具")
+                )))
     if any_player_has_tools :
         sleep(1)
     chosen_game.gen_bullets()
-    print("子弹共有", len(chosen_game.bullets), "发")
+    print(Texts.BULLET_TOTAL.format(len(chosen_game.bullets)))
     sleep(1)
-    print("实弹", chosen_game.bullets.count(True), "发 , 空弹",
-          chosen_game.bullets.count(False), "发")
+    print(Texts.TRUES_FALSES_COUNT.format(
+        chosen_game.bullets.count(True), chosen_game.bullets.count(False)
+    ))
     shoot_result: ShootResult
     shoots_result: List[ShootResult]
     shoot_combo_addition: int
@@ -368,18 +394,17 @@ while 1 :
     while chosen_game.bullets :
         gametime_time_start = time()
         try :
-            with open("emlpd.dat", "wb") as gamesave_file :
+            with open(gamesave_filename, "wb") as gamesave_file :
                 gamesave_file.write(gamesave.serialize())
         except OSError as err :
-            print("存档时遇到问题!", err)
+            print(Texts.PROBLEM_SAVING, err)
         if not (chosen_game.players[0].alive and chosen_game.players[1].alive):
             break
         if chosen_game.players[0].stopped_turns > 0 :
-            print("感觉...头晕晕的...要变成{0}了~".format(cat_girl))
+            print(Texts.R_DAZING.format(cat_girl))
         elif chosen_game.players[1].stopped_turns > 0 :
-            print("哈哈哈哈,对方被敲晕了,还是我的回合!" if
-                  chosen_game.players[1].controllable else
-                  "哈哈哈哈,恶魔被敲晕了,还是我的回合!")
+            print(Texts.OPPO_DAZING if chosen_game.players[1].controllable else
+                  Texts.E_DAZING)
         gamesave.active_gametime += time() - gametime_time_start
         if chosen_game.players[chosen_game.turn_orders[0]].controllable :
             if debug :
@@ -401,15 +426,14 @@ while 1 :
             else :
                 if sum(x.controllable
                        for x in chosen_game.players.values()) < 2 :
-                    print("本轮由你操作")
+                    print(Texts.YOUR_TURN)
                 else :
-                    print("本轮由玩家", chosen_game.turn_orders[0], "操作")
+                    print(Texts.PLAYER_TURN.format(chosen_game.turn_orders[0]))
                 print(
-                    "请选择:1朝对方开枪,0朝自己开枪,7打开道具库,8查看对方道具"\
-                    if chosen_game.has_tools() or any(
+                    Texts.OPER_CHOOSE_1078 if chosen_game.has_tools() or any(
                         x.count_tools(None) < len(x.slots)
                         for x in chosen_game.players.values()
-                    ) else "请选择:1朝对方开枪,0朝自己开枪"
+                    ) else Texts.OPER_CHOOSE_10
                 )
                 try :
                     operation = int(input())
@@ -422,7 +446,7 @@ while 1 :
             ) :
                 player = chosen_game.players[chosen_game.turn_orders[0]]
                 victim =chosen_game.players[0+(not chosen_game.turn_orders[0])]
-                print("道具库:")
+                print(Texts.TOOL_WAREHOUSE)
                 tools_existence: Dict[int, int] = {}
                 permaslots: Dict[int, int] = {}
                 for slotid, slot in enumerate(player.slots) :
@@ -435,30 +459,35 @@ while 1 :
                         tools_existence[slot[1]] = slotid
                 for k, v in permaslots.items() :
                     if v > 1 :
-                        print("(*{0})".format(v), "道具", k, ":",
-                              chosen_game.tools[k][0])
+                        print(Texts.TOOL_NAME_MORE.format(
+                            k, chosen_game.tools[k][0], v
+                        ))
                     else :
-                        print("道具", k, ":", chosen_game.tools[k][0])
+                        print(Texts.TOOL_NAME_ONE.format(
+                            k, chosen_game.tools[k][0]
+                        ))
                     if chosen_game.tools[k][1] is None :
-                        print("此道具无描述")
+                        print(Texts.TOOL_NO_DESC)
                     else :
-                        print("描述:", chosen_game.tools[k][1])
+                        print(Texts.TOOL_DESC, chosen_game.tools[k][1])
                 for slot in player.slots :
                     if slot[1] is not None and slot[0] > 0 :
-                        print("道具", slot[1], ":",
-                              chosen_game.tools[slot[1]][0])
+                        print(Texts.TOOL_NAME_ONE.format(
+                            slot[1], chosen_game.tools[slot[1]][0]
+                        ))
                         if chosen_game.tools[slot[1]][1] is None :
-                            print("此道具无描述")
+                            print(Texts.TOOL_NO_DESC)
                         else :
-                            print("描述:", chosen_game.tools[slot[1]][1])
-                        print("还有", slot[0], "回合到期")
+                            print(Texts.TOOL_DESC,
+                                  chosen_game.tools[slot[1]][1])
+                        print(Texts.SLOT_EXPIRED_AT.format(slot[0]))
                 if not tools_existence :
-                    print("(空)")
+                    print(Texts.TOOL_WAREHOUSE_EMPTY)
                 while tools_existence :
-                    print("返回请直接按回车")
+                    print(Texts.ENTER_TO_RETURN)
                     to_use: Optional[int] = None
                     try:
-                        to_use = int(input("使用道具请输入它的对应编号:"))
+                        to_use = int(input(Texts.INPUT_ID_TO_USE))
                     except ValueError:
                         break
                     if to_use in tools_existence :
@@ -484,65 +513,50 @@ while 1 :
                                 player.slots[tools_existence[2]] = \
                                 (player.slots[tools_existence[2]][0], None)
                                 player.attack_boost += 1
-                                print("你使用了小刀,结果会如何呢?真让人期待")
+                                print(Texts.R_USES_ID2)
                         elif to_use == 3 :
                             player.slots[tools_existence[3]] = \
                             (player.slots[tools_existence[3]][0], None)
-                            print("你排出了一颗实弹" \
-                                  if chosen_game.bullets.pop(0) \
-                                  else "你排出了一颗空弹")
+                            print(Texts.R_USES_ID3[chosen_game.bullets.pop(0)])
                         elif to_use == 4 :
                             player.slots[tools_existence[4]] = \
                             (player.slots[tools_existence[4]][0], None)
                             chosen_game.rel_turn_lap += 1
                             victim.stopped_turns += 1
-                            print("恭喜你,成功敲晕了对方!")
+                            print(Texts.R_USES_ID4)
                         elif to_use == 5 :
                             player.slots[tools_existence[5]] = \
                             (player.slots[tools_existence[5]][0], None)
-                            if isinstance(player, NormalPlayer) :
-                                if player.hp <= 3 + player.hurts / 4. or \
-                                   (random() < 0.5 ** (
-                                       player.hp-3-player.hurts/4.
-                                   ) and not nightmare) :
-                                    player.hp += 1
-                                    gamesave.healed += 1
-                                    print("你使用了道德的崇高赞许,"
-                                          "回复了1点生命")
-                                else :
-                                    print("因为你的不诚实,你并未回复生命,"
-                                          "甚至失去了道德的崇高赞许")
-                            else :
-                                if player.hp <= 3 or \
-                                   (random() < 0.5 ** (player.hp-3) and
-                                    not nightmare) :
-                                    player.hp += 1
-                                    gamesave.healed += 1
-                                    print("你使用了道德的崇高赞许,"
-                                          "回复了1点生命")
-                                else :
-                                    print("因为你的不诚实,你并未回复生命,"
-                                          "甚至失去了道德的崇高赞许")
+                            heal_succeeded: bool = \
+                            player.hp <= 3 + player.hurts / 4. or \
+                            (random() < 0.5 ** (player.hp-3-player.hurts/4.)
+                             and not nightmare) \
+                            if isinstance(player, NormalPlayer) else \
+                            player.hp <= 3 or \
+                            (random() < 0.5 ** (player.hp-3) and not nightmare)
+                            if heal_succeeded :
+                                player.hp += 1
+                                gamesave.healed += 1
+                            print(Texts.R_USES_ID5[heal_succeeded])
                         elif to_use == 6 :
                             player.slots[tools_existence[6]] = \
                             (player.slots[tools_existence[6]][0], None)
-                            print("当前的子弹为实弹" if chosen_game.bullets[0]\
-                                  else "当前的子弹为空弹")
+                            print(Texts.R_USES_ID6[chosen_game.bullets[0]])
                             if chosen_game.extra_bullets[0] is not None :
                                 if chosen_game.extra_bullets[0] :
-                                    print("当前的子弹为实弹" \
-                                          if chosen_game.extra_bullets[0][0] \
-                                          else "当前的子弹为空弹")
+                                    print(Texts.R_USES_ID6[
+                                        chosen_game.extra_bullets[0][0]
+                                    ])
                                 if chosen_game.extra_bullets[1] is not None :
                                     if chosen_game.extra_bullets[1] :
-                                        print("当前的子弹为实弹" if \
-                                              chosen_game.extra_bullets[1][0] \
-                                              else "当前的子弹为空弹")
+                                        print(Texts.R_USES_ID6[
+                                            chosen_game.extra_bullets[1][0]
+                                        ])
                                     if chosen_game.extra_bullets[2] is not \
                                        None and chosen_game.extra_bullets[2] :
-                                        print("当前的子弹为实弹" if \
-                                              chosen_game.extra_bullets[2][0] \
-                                              else "当前的子弹为空弹")
+                                        print(Texts.R_USES_ID6[
+                                            chosen_game.extra_bullets[2][0]
+                                        ])
                         elif to_use == 7 :
                             player.slots[tools_existence[7]] = \
                             (player.slots[tools_existence[7]][0], None)
@@ -574,7 +588,9 @@ while 1 :
                                 if slot[1] is None :
                                     player.slots[slotid] = \
                                     (player.slots[slotid][0], bring_tool_id)
-                                    print("+1 道具", bring_tool_id)
+                                    print(Texts.TOOL_PLUS_1.format(
+                                        bring_tool_id
+                                    ))
                                     break
                             else :
                                 assert 0
@@ -605,7 +621,7 @@ while 1 :
                             if isinstance(player, NormalPlayer) :
                                 player.slots[tools_existence[9]] = \
                                 (player.slots[tools_existence[9]][0], None)
-                                print("你穿上了一件防弹衣")
+                                print(Texts.R_USES_ID9)
                                 player.bulletproof.insert(0, 3)
                         elif to_use == 11 :
                             player.slots[tools_existence[11]] = \
@@ -613,13 +629,13 @@ while 1 :
                             dice_sum: int = \
                             randint(1, 6) + randint(1, 6) + randint(1, 6)
                             if debug :
-                                print("你摇出了", dice_sum, "点")
+                                print(Texts.R_USES_ID11.format(dice_sum))
                             if dice_sum == 3 :
                                 if isinstance(player, NormalPlayer) :
                                     player.breakcare_rounds += 2
                             elif dice_sum == 4 :
                                 player.hp -= 2
-                                print("你失去了2点生命")
+                                print(Texts.R_LOST_2_HP)
                             elif dice_sum == 5 :
                                 for bullet_index \
                                 in range(2, len(chosen_game.bullets)) :
@@ -627,7 +643,7 @@ while 1 :
                                     not randint(0, 1)
                             elif dice_sum == 6 :
                                 player.hp -= 1
-                                print("你失去了1点生命")
+                                print(Texts.R_LOST_1_HP)
                             elif dice_sum == 7 :
                                 vanishable_indices: List[int] = []
                                 for slotid, slot in enumerate(player.slots) :
@@ -650,7 +666,7 @@ while 1 :
                             elif dice_sum == 10 :
                                 player.hp += 1
                                 gamesave.healed += 1
-                                print("你获得了1点生命")
+                                print(Texts.R_GOT_1_HP)
                             elif dice_sum == 11 :
                                 if isinstance(player, NormalPlayer) and \
                                    player.stamina < 32 :
@@ -661,12 +677,12 @@ while 1 :
                                 if isinstance(player, NormalPlayer) :
                                     player.attack_boost += 2
                                     if randint(0, 1) :
-                                        print("你的攻击力提高了2点")
+                                        print(Texts.R_ATTACK_BOOSTED_2)
                             elif dice_sum == 13 :
                                 victim.hp -= 1
                                 print(
-                                    "对方失去了1点生命" if victim.controllable
-                                    else "恶魔失去了1点生命"
+                                    Texts.OPPO_LOST_1_HP if victim.controllable
+                                    else Texts.E_LOST_1_HP
                                 )
                             elif dice_sum == 14 :
                                 k: int = 2 - (not randint(0, 2))
@@ -675,17 +691,17 @@ while 1 :
                             elif dice_sum == 15 :
                                 victim.hp -= 2
                                 print(
-                                    "对方失去了2点生命" if victim.controllable
-                                    else "恶魔失去了2点生命"
+                                    Texts.OPPO_LOST_2_HP if victim.controllable
+                                    else Texts.E_LOST_2_HP
                                 )
                             elif dice_sum == 18 :
                                 victim.hp //= 8
                                 if victim.controllable :
-                                    print("对方受到暴击!!!")
-                                    print("对方生命值:", victim.hp)
+                                    print(Texts.OPPO_CRIT)
+                                    print(Texts.OPPO_CUR_HP.format(victim.hp))
                                 else :
-                                    print("恶魔受到暴击!!!")
-                                    print("恶魔生命值:", victim.hp)
+                                    print(Texts.E_CRIT)
+                                    print(Texts.E_CUR_HP.format(victim.hp))
                                 gamesave.add_exp(6)
                         elif to_use == 12 :
                             temporary_slots: List[int] = []
@@ -694,8 +710,7 @@ while 1 :
                                     temporary_slots.append(slotid)
                             if temporary_slots :
                                 player.slots[tools_existence[12]] = \
-                                (player.slots[tools_existence[12]][0],
-                                 None)
+                                (player.slots[tools_existence[12]][0], None)
                                 delay_prob: float = len(temporary_slots) ** 0.5
                                 for slotid in temporary_slots :
                                     if random() < delay_prob :
@@ -708,10 +723,9 @@ while 1 :
                             player.slots[tools_existence[13]] = \
                             (player.slots[tools_existence[13]][0], None)
                             if randint(0, 1) :
-                                print(
-                                    "你变成了对方的样子" if victim.controllable
-                                    else "你变成了恶魔的样子"
-                                )
+                                print(Texts.R_TURNED_INTO_OPPO
+                                      if victim.controllable
+                                      else Texts.R_TURNED_INTO_E)
                                 player.hp = victim.hp
                                 player.slots.clear()
                                 player.slots.extend(victim.slots)
@@ -746,10 +760,9 @@ while 1 :
                                     player.mid_band_level = \
                                     victim.mid_band_level
                             else :
-                                print(
-                                    "对方变成了你的样子" if victim.controllable
-                                    else "恶魔变成了你的样子"
-                                )
+                                print(Texts.OPPO_TURNED_INTO_R
+                                      if victim.controllable
+                                      else Texts.E_TURNED_INTO_R)
                                 victim.hp = player.hp
                                 victim.slots.clear()
                                 victim.slots.extend(player.slots)
@@ -800,19 +813,17 @@ while 1 :
                                 if random() < fill_probability :
                                     chosen_game.bullets[bullet_index] = True
                             if chosen_game.bullets != original_bullets :
-                                print("弹夹有变动")
+                                print(Texts.CLIP_CHANGED)
                         elif to_use == 16 :
                             former_bullets: List[bool] = chosen_game.bullets[:]
                             chosen_game.bullets.clear()
-                            print("输入0以开始重整弹药,直接按回车以取消。")
+                            print(Texts.BEFORE_USE_ID16)
                             for i in range(len(former_bullets)) :
                                 for bullet_index in range(i) :
                                     print(end=str(bullet_index))
-                                    print(
-                                        end="实" if \
-                                            chosen_game.bullets[bullet_index] \
-                                            else "空"
-                                    )
+                                    print(end=Texts.DURING_USE_ID16[
+                                        chosen_game.bullets[bullet_index]
+                                    ].string)
                                 print(i)
                                 insertion: int = -1
                                 while not (0 <= insertion <= i) :
@@ -839,13 +850,11 @@ while 1 :
                                         chosen_game.bullets
                                 )) :
                                     print(end=str(bullet_index))
-                                    print(
-                                        end="实" if \
-                                            chosen_game.bullets[bullet_index] \
-                                            else "空"
-                                    )
+                                    print(end=Texts.DURING_USE_ID16[
+                                        chosen_game.bullets[bullet_index]
+                                    ].string)
                                 print(len(chosen_game.bullets))
-                                print("你重整了一下弹药")
+                                print(Texts.R_USES_ID16)
                         elif to_use == 17 :
                             if isinstance(player, NormalPlayer) :
                                 player.slots[tools_existence[17]] = \
@@ -878,93 +887,88 @@ while 1 :
                         elif to_use == 22 :
                             if len(chosen_game.bullets) == 1 :
                                 if input(
-                                    "弹夹内只有1发子弹,将其取出会即刻进入下一"
-                                    "回合,是否将其取出?(y/[N])"
+                                    Texts.BEFORE_USE_ID22_1
                                 ).strip().lower() in ("y", "0") :
-                                    player.slots[tools_existence[22]] =\
-                                    (player.slots[tools_existence[22]][
-                                        0
-                                    ],24 if chosen_game.bullets.pop(0) else 23)
-                                    print("你取出了一颗子弹")
-                                    print("+1 道具", player.slots[
-                                        tools_existence[22]
-                                    ][1])
+                                    player.slots[tools_existence[22]] = \
+                                    (player.slots[tools_existence[22]][0],
+                                     24 if chosen_game.bullets.pop(0) else 23)
+                                    print(Texts.R_USES_ID22)
+                                    print(Texts.TOOL_PLUS_1.format(
+                                        player.slots[tools_existence[22]][1]
+                                    ))
                                 else :
                                     used = False
                             else :
                                 try :
                                     bullet_i_to_pick: int = int(input(
-                                        "请输入要取出子弹的编号"
-                                        "(0~{0},0为当前子弹,输入其它以取消):"
-                                        .format(len(chosen_game.bullets)-1)
+                                        Texts.BEFORE_USE_ID22.format(
+                                            len(chosen_game.bullets)-1
+                                        )
                                     ))
                                     if 0 <= bullet_i_to_pick < \
                                        len(chosen_game.bullets) :
-                                        player.slots[tools_existence[
-                                            22
-                                        ]] = (player.slots[
-                                            tools_existence[22]
-                                        ][0], 24 if chosen_game.bullets.pop(
+                                        player.slots[tools_existence[22]] = \
+                                        (player.slots[tools_existence[22]][0],
+                                         24 if chosen_game.bullets.pop(
                                             bullet_i_to_pick
                                         ) else 23)
-                                        print("你取出了一颗子弹")
-                                        print("+1 道具", player.slots[
-                                            tools_existence[22]
-                                        ][1])
+                                        print(Texts.R_USES_ID22)
+                                        print(Texts.TOOL_PLUS_1.format(
+                                            player.slots[
+                                                tools_existence[22]
+                                            ][1]
+                                        ))
                                     else :
                                         used = False
                                 except ValueError :
                                     used = False
                         elif to_use == 23 :
                             try :
-                                bullet_i_to_ins: int = \
-                                int(input("请输入要插入空弹的编号(0~{0},"
-                                          "0为当前子弹之前,输入其它以取消):"
-                                          .format(len(chosen_game.bullets))))
+                                bullet_i_to_ins: int = int(input(
+                                    Texts.BEFORE_USE_ID23.format(len(
+                                        chosen_game.bullets
+                                    ))
+                                ))
                                 if 0 <= bullet_i_to_ins <= \
-                                    len(chosen_game.bullets) :
-                                    player.slots[tools_existence[23]] =\
-                                    (player.slots[tools_existence[23]][
-                                        0
-                                    ], None)
+                                   len(chosen_game.bullets) :
+                                    player.slots[tools_existence[23]] = \
+                                    (player.slots[tools_existence[23]][0],None)
                                     chosen_game.bullets.insert(bullet_i_to_ins,
                                                                False)
-                                    print("你放入了一颗空弹")
+                                    print(Texts.R_USES_ID23)
                                 else :
                                     used = False
                             except ValueError :
                                 used = False
                         elif to_use == 24 :
                             try :
-                                bullet_i_to_ins: int = \
-                                int(input("请输入要插入实弹的编号(0~{0},"
-                                          "0为当前子弹之前,输入其它以取消):"
-                                          .format(len(chosen_game.bullets))))
+                                bullet_i_to_ins: int = int(input(
+                                    Texts.BEFORE_USE_ID24.format(len(
+                                        chosen_game.bullets
+                                    ))
+                                ))
                                 if 0 <= bullet_i_to_ins <= \
-                                    len(chosen_game.bullets) :
-                                    player.slots[tools_existence[24]] =\
-                                    (player.slots[tools_existence[24]][
-                                        0
-                                    ], None)
+                                   len(chosen_game.bullets) :
+                                    player.slots[tools_existence[24]] = \
+                                    (player.slots[tools_existence[24]][0],None)
                                     chosen_game.bullets.insert(bullet_i_to_ins,
                                                                True)
-                                    print("你放入了一颗实弹")
+                                    print(Texts.R_USES_ID24)
                                 else :
                                     used = False
                             except ValueError :
                                 used = False
                         elif to_use == 25 :
                             try :
-                                bullet_i_to_ins: int = \
-                                int(input("请输入要插入神秘子弹的编号(0~{0},"
-                                          "0为当前子弹之前,输入其它以取消):"
-                                          .format(len(chosen_game.bullets))))
+                                bullet_i_to_ins: int = int(input(
+                                    Texts.BEFORE_USE_ID25.format(len(
+                                        chosen_game.bullets
+                                    ))
+                                ))
                                 if 0 <= bullet_i_to_ins <= \
-                                    len(chosen_game.bullets) :
-                                    player.slots[tools_existence[25]] =\
-                                    (player.slots[tools_existence[25]][
-                                        0
-                                    ], None)
+                                   len(chosen_game.bullets) :
+                                    player.slots[tools_existence[25]] = \
+                                    (player.slots[tools_existence[25]][0],None)
                                     chosen_game.bullets.insert(
                                         bullet_i_to_ins, not randint(0, 1)
                                     )
@@ -973,7 +977,7 @@ while 1 :
                                         chosen_game.bullets[
                                             bullet_i_to_ins+1
                                         ] = not randint(0, 1)
-                                    print("你放入了一颗神秘子弹")
+                                    print(Texts.R_USES_ID25)
                                 else :
                                     used = False
                             except ValueError :
@@ -984,10 +988,9 @@ while 1 :
                                    player.begin_band_level + \
                                    player.mid_band_level :
                                     player.slots[tools_existence[26]] = \
-                                    (player.slots[tools_existence[26]][0],
-                                     None)
+                                    (player.slots[tools_existence[26]][0],None)
                                     player.begin_band_level += 1
-                                    print("你使用了绷带")
+                                    print(Texts.R_USES_ID26)
                                 else :
                                     used = False
                         elif to_use == 27 :
@@ -996,23 +999,23 @@ while 1 :
                             if player.hp < 2 :
                                 player.hp += 5
                                 gamesave.healed += 5
-                                print("你使用了医疗包,回复了5点生命")
+                                print(Texts.R_USES_ID27_5)
                             elif player.hp < 5 :
                                 player.hp += 4
                                 gamesave.healed += 4
-                                print("你使用了医疗包,回复了4点生命")
+                                print(Texts.R_USES_ID27_4)
                             elif player.hp < 9 :
                                 player.hp += 3
                                 gamesave.healed += 3
-                                print("你使用了医疗包,回复了3点生命")
+                                print(Texts.R_USES_ID27_3)
                             elif player.hp < 14 :
                                 player.hp += 2
                                 gamesave.healed += 2
-                                print("你使用了医疗包,回复了2点生命")
+                                print(Texts.R_USES_ID27_2)
                             else :
                                 player.hp += 1
                                 gamesave.healed += 1
-                                print("你使用了医疗包,回复了1点生命")
+                                print(Texts.R_USES_ID27_1)
                             if isinstance(player, NormalPlayer) :
                                 if player.hurts < 1 :
                                     player.hp += 2
@@ -1025,9 +1028,9 @@ while 1 :
                             player.slots[tools_existence[28]] = \
                             (player.slots[tools_existence[28]][0], None)
                             while chosen_game.bullets :
-                                print("你排出了一颗实弹" \
-                                      if chosen_game.bullets.pop(0) \
-                                      else "你排出了一颗空弹")
+                                print(Texts.R_USES_ID3[
+                                    chosen_game.bullets.pop(0)
+                                ])
                         elif to_use == 29 :
                             player.slots[tools_existence[29]] = \
                             (player.slots[tools_existence[29]][0], None)
@@ -1054,22 +1057,21 @@ while 1 :
                             chosen_game.rel_turn_lap += \
                             len(chosen_game.bullets)
                             victim.stopped_turns += len(chosen_game.bullets)
-                            print("恭喜你,成功敲晕了对方!")
+                            print(Texts.R_USES_ID4)
                         elif to_use == 32 :
                             if player.hp == 1 :
                                 if "y" == input(
-                                    "你只有1生命值,是否要发起擂台战?(y/[N])"
+                                    Texts.BEFORE_USE_ID32_1
                                 ).strip().lower() :
                                     player.slots[tools_existence[32]] = \
-                                    (player.slots[tools_existence[32]][0],
-                                     None)
+                                    (player.slots[tools_existence[32]][0],None)
                                     if victim.controllable :
-                                        print(
-                                            "对方以 1 生命值向你发起了擂台战"
-                                        )
+                                        print(Texts.OPPO_INITS_STAGE.string
+                                              .format(1))
                                         if victim.hp == 1 :
-                                            print("你以仅有的 1 生命值应战")
-                                            print("对方以 1 生命值应战")
+                                            print(Texts.R_RECEIVES_STAGE_1)
+                                            print(Texts.OPPO_RECEIVES_STAGE
+                                                  .format(1))
                                             player.hp -= 1
                                             victim.hp -= 1
                                             parent_game.subgame = StageGame(
@@ -1087,14 +1089,16 @@ while 1 :
                                             while True :
                                                 try :
                                                     evil_hp: int = int(input(
-                                                        "请输入你要作为赌注的"
-                                                        "生命值(1~{0})"
-                                                        ":".format(victim.hp)
+                                                        Texts.R_RECEIVES_STAGE
+                                                        .format(victim.hp)
                                                     ))
                                                     if 0 < evil_hp <= \
                                                        victim.hp :
-                                                        print("对方以",evil_hp,
-                                                              "生命值应战")
+                                                        print(
+                                                            Texts.
+                                                            OPPO_RECEIVES_STAGE
+                                                            .format(evil_hp)
+                                                        )
                                                         player.hp -= 1
                                                         victim.hp -= evil_hp
                                                         parent_game.subgame = \
@@ -1121,7 +1125,8 @@ while 1 :
                                                     pass
                                     else :
                                         evil_hp: int = randint(1, victim.hp)
-                                        print("恶魔以", evil_hp, "生命值应战")
+                                        print(Texts.E_RECEIVES_STAGE.string
+                                              .format(evil_hp))
                                         player.hp -= 1
                                         victim.hp -= evil_hp
                                         parent_game.subgame = StageGame(
@@ -1139,22 +1144,22 @@ while 1 :
                                     used = False
                             else :
                                 try :
-                                    your_hp: int = \
-                                    int(input("请输入你要作为赌注的生命值"
-                                              "(1~{0},输入其它以取消):"
-                                              .format(player.hp)))
+                                    your_hp: int = int(input(
+                                        Texts.BEFORE_USE_ID32.format(player.hp)
+                                    ))
                                     if 0 < your_hp <= player.hp :
                                         player.slots[tools_existence[32]] = \
                                         (player.slots[tools_existence[32]][0],
                                          None)
                                         if victim.controllable :
-                                            print("对方以", your_hp,
-                                                  "生命值向你发起了擂台战")
+                                            print(Texts.OPPO_INITS_STAGE
+                                                  .format(your_hp))
                                             if victim.hp == 1 :
+                                                print(Texts.R_RECEIVES_STAGE_1)
                                                 print(
-                                                    "你以仅有的 1 生命值应战"
+                                                    Texts.OPPO_RECEIVES_STAGE
+                                                    .format(1)
                                                 )
-                                                print("对方以 1 生命值应战")
                                                 player.hp -= your_hp
                                                 victim.hp -= 1
                                                 parent_game.subgame = \
@@ -1174,17 +1179,17 @@ while 1 :
                                                     try :
                                                         evil_hp: int = \
                                                         int(input(
-                                                            "请输入你要作为赌"
-                                                            "注的生命值(1~{0})"
-                                                            ":".format(
-                                                                victim.hp
-                                                            )
+                                                            Texts
+                                                            .R_RECEIVES_STAGE
+                                                            .format(victim.hp)
                                                         ))
                                                         if 0 < evil_hp <= \
                                                            victim.hp :
-                                                            print("对方以",
-                                                                  evil_hp,
-                                                                  "生命值应战")
+                                                            print(
+                                                            Texts.
+                                                            OPPO_RECEIVES_STAGE
+                                                            .format(evil_hp)
+                                                            )
                                                             player.hp -=your_hp
                                                             victim.hp -=evil_hp
                                                             parent_game\
@@ -1215,8 +1220,8 @@ while 1 :
                                                         pass
                                         else :
                                             evil_hp: int = randint(1,victim.hp)
-                                            print("恶魔以", evil_hp,
-                                                  "生命值应战")
+                                            print(Texts.E_RECEIVES_STAGE
+                                                  .format(evil_hp))
                                             player.hp -= your_hp
                                             victim.hp -= evil_hp
                                             parent_game.subgame = StageGame(
@@ -1244,7 +1249,7 @@ while 1 :
                                     Fraction(2, 3)*\
                                     chosen_game.explosion_exponent
                                 )
-                                print("你维修了一下枪筒")
+                                print(Texts.R_USES_ID33)
                             else :
                                 used = False
                         elif to_use == 34 :
@@ -1264,7 +1269,7 @@ while 1 :
                                         i.remove(False)
                                     for _ in range(false_count) :
                                         i.append(False)
-                            print("弹夹进行了空实分离")
+                            print(Texts.R_USES_ID34)
                         elif to_use == 35 :
                             if any(chosen_game.extra_bullets) :
                                 player.slots[tools_existence[35]] = \
@@ -1273,11 +1278,11 @@ while 1 :
                                     if i :
                                         chosen_game.bullets.extend(i)
                                         i.clear()
-                                print("你合并了一下弹夹")
+                                print(Texts.R_USES_ID35)
                             else :
                                 used = False
                         if used :
-                            print("-1 道具", to_use)
+                            print(Texts.TOOL_MINUS_1.format(to_use))
                         if not chosen_game.bullets :
                             break
                         tools_existence.clear()
@@ -1291,15 +1296,15 @@ while 1 :
                                         permaslots[slot[1]] = 1
                                 tools_existence[slot[1]] = slotid
                     else :
-                        print("道具", to_use, "不存在或未拥有")
+                        print(Texts.NO_SUCH_TOOL.format(to_use))
             elif operation == 8  and (
                 chosen_game.has_tools() or
                 chosen_game.count_tools_of_r(None) < len(chosen_game.r_slots)or
                 chosen_game.count_tools_of_e(None) < len(chosen_game.e_slots)
             ) :
                 player =chosen_game.players[0+(not chosen_game.turn_orders[0])]
-                print("对方的道具库:" if player.controllable
-                      else "恶魔的道具库:")
+                print(Texts.OPPO_TOOL_WAREHOUSE if player.controllable
+                      else Texts.E_TOOL_WAREHOUSE)
                 permaslots: Dict[int, int] = {}
                 e_has_tool: bool = False
                 for slot in player.slots :
@@ -1311,26 +1316,30 @@ while 1 :
                             permaslots[slot[1]] = 1
                 for k, v in permaslots.items() :
                     if v > 1 :
-                        print("(*{0})".format(v), "道具", k, ":",
-                              chosen_game.tools[k][0])
+                        print(Texts.TOOL_NAME_MORE.format(
+                            k, chosen_game.tools[k][0], v
+                        ))
                     else :
-                        print("道具", k, ":", chosen_game.tools[k][0])
+                        print(Texts.TOOL_NAME_ONE.format(
+                            k, chosen_game.tools[k][0]
+                        ))
                     if chosen_game.tools[k][1] is None :
-                        print("此道具无描述")
+                        print(Texts.TOOL_NO_DESC)
                     else :
-                        print("描述:", chosen_game.tools[k][1])
+                        print(Texts.TOOL_DESC, chosen_game.tools[k][1])
                 for slot in player.slots :
                     if slot[1] is not None and slot[0] > 0 :
-                        e_has_tool = True
-                        print("道具", slot[1], ":",
-                              chosen_game.tools[slot[1]][0])
+                        print(Texts.TOOL_NAME_ONE.format(
+                            slot[1], chosen_game.tools[slot[1]][0]
+                        ))
                         if chosen_game.tools[slot[1]][1] is None :
-                            print("此道具无描述")
+                            print(Texts.TOOL_NO_DESC)
                         else :
-                            print("描述:", chosen_game.tools[slot[1]][1])
-                        print("还有", slot[0], "回合到期")
+                            print(Texts.TOOL_DESC,
+                                  chosen_game.tools[slot[1]][1])
+                        print(Texts.SLOT_EXPIRED_AT.format(slot[0]))
                 if not e_has_tool :
-                    print("(空)")
+                    print(Texts.TOOL_WAREHOUSE_EMPTY)
             elif operation == 1 :
                 player = chosen_game.players[chosen_game.turn_orders[0]]
                 victim =chosen_game.players[0+(not chosen_game.turn_orders[0])]
@@ -1407,7 +1416,7 @@ while 1 :
                                 if bullets_i[0] or not randint(0, 3) :
                                     gamesave.add_exp()
                             if bullets_i[1] :
-                                print("哦嘿,子弹居然炸膛了!")
+                                print(Texts.R_EXPLODES)
                                 if bullets_i[0] :
                                     gamesave.exploded_againstshoot_trues += 1
                                     if nightmare and not victim.controllable :
@@ -1423,8 +1432,7 @@ while 1 :
                                             else base_attack
                                         )//2)
                                     true_on_r = True
-                                    print("感觉像是去奈何桥走了一遭,"
-                                          "竟然是个实弹!")
+                                    print(Texts.R_TRUE_ON_R)
                                     for _ in range(
                                         base_attack+player.attack_boost \
                                         if isinstance(player, NormalPlayer) \
@@ -1439,14 +1447,14 @@ while 1 :
                                             player.hp -= 1
                                             gamesave.damage_caused_to_r += 1
                                             gamesave.damage_caught += 1
-                                    print("你的生命值:", player.hp)
+                                    print(Texts.R_CUR_HP.format(player.hp))
                                     if isinstance(player, NormalPlayer) and \
                                        random() >= player.hurts / 8. :
                                         player.hurts += 1
                                         assert 0 <= player.hurts < 9
                                 else :
                                     gamesave.exploded_againstshoot_falses += 1
-                                    print("啊哈!,是个空弹!")
+                                    print(Texts.R_FALSE_ON_R)
                             else :
                                 if bullets_i[0] :
                                     gamesave.success_againstshoot_trues += 1
@@ -1464,9 +1472,9 @@ while 1 :
                                             chosen_game.bullets.append(True)
                                             if victim.stamina > 0 :
                                                 victim.stamina -= 1
-                                            print("对方接住了一颗子弹"
+                                            print(Texts.OPPO_CATCHES_BULLET
                                                   if victim.controllable
-                                                  else "恶魔接住了一颗子弹")
+                                                  else Texts.E_CATCHES_BULLET)
                                             continue
                                     else :
                                         if random() < 0.8 / (
@@ -1478,9 +1486,9 @@ while 1 :
                                             chosen_game.bullets.append(False)
                                             if victim.stamina > 0 :
                                                 victim.stamina -= 1
-                                            print("对方接住了一颗子弹"
+                                            print(Texts.OPPO_CATCHES_BULLET
                                                   if victim.controllable
-                                                  else "恶魔接住了一颗子弹")
+                                                  else Texts.E_CATCHES_BULLET)
                                             continue
                                 if isinstance(victim, NormalPlayer) and \
                                    victim.bulletproof :
@@ -1488,9 +1496,9 @@ while 1 :
                                         (player.attack_boost+1)**0.5
                                     )) if isinstance(player, NormalPlayer) \
                                     else 1
-                                    print("对方的防弹衣承受了这次撞击"
+                                    print(Texts.OPPO_BULLETPROOF_DEFENDS
                                           if victim.controllable
-                                          else "恶魔的防弹衣承受了这次撞击")
+                                          else Texts.E_BULLETPROOF_DEFENDS)
                                     if victim.bulletproof[0] <= 0 :
                                         if random() >= \
                                            2 ** (victim.bulletproof[0]-1) :
@@ -1504,9 +1512,9 @@ while 1 :
                                                         victim.\
                                                         breakcare_rounds += 1
                                                 victim.breakcare_potential = 0
-                                            print("对方的一件防弹衣爆了"
-                                                  if victim.controllable
-                                                  else "恶魔的一件防弹衣爆了")
+                                            print(Texts.OPPO_BULLETPROOF_BREAKS
+                                                  if victim.controllable else
+                                                  Texts.E_BULLETPROOF_BREAKS)
                                 elif bullets_i[0] :
                                     if nightmare and not victim.controllable :
                                         gamesave.add_exp(ceil((
@@ -1521,7 +1529,7 @@ while 1 :
                                             else base_attack
                                         )//2)
                                     true_on_e = True
-                                    print("运气非常好,是个实弹!")
+                                    print(Texts.R_TRUE_ON_E)
                                     for _ in range(
                                         base_attack+player.attack_boost
                                         if isinstance(player, NormalPlayer)
@@ -1534,14 +1542,16 @@ while 1 :
                                         else :
                                             victim.hp -= 1
                                             gamesave.damage_caused_to_e += 1
-                                    print("对方生命值:" if victim.controllable
-                                          else "恶魔生命值:", victim.hp)
+                                    print((
+                                        Texts.OPPO_CUR_HP if
+                                        victim.controllable else Texts.E_CUR_HP
+                                    ).format(victim.hp))
                                     if isinstance(victim, NormalPlayer) and \
                                        random() >= victim.hurts / 8. :
                                         victim.hurts += 1
                                         assert 0 <= victim.hurts < 9
                                 else :
-                                    print("很遗憾,是个空弹")
+                                    print(Texts.R_FALSE_ON_E)
                 if isinstance(player, NormalPlayer) and not true_on_r and \
                    player.stamina < 32 and random() < 1. / (player.hurts+1) :
                     player.stamina += 1
@@ -1586,7 +1596,7 @@ while 1 :
                                 gamesave.exploded_selfshoot_trues += 1
                             else :
                                 gamesave.exploded_selfshoot_falses += 1
-                            print("哦嘿,子弹居然炸膛了!")
+                            print(Texts.R_EXPLODES)
                             if isinstance(victim, NormalPlayer) and \
                                victim.bullet_catcher_level :
                                 if bullets_i[0] :
@@ -1599,9 +1609,9 @@ while 1 :
                                         chosen_game.bullets.append(True)
                                         if victim.stamina > 0 :
                                             victim.stamina -= 1
-                                        print("对方接住了一颗子弹"
+                                        print(Texts.OPPO_CATCHES_BULLET
                                               if victim.controllable
-                                              else "恶魔接住了一颗子弹")
+                                              else Texts.E_CATCHES_BULLET)
                                         continue
                                 else :
                                     if random() < 0.8 / (
@@ -1612,18 +1622,18 @@ while 1 :
                                         chosen_game.bullets.append(False)
                                         if victim.stamina > 0 :
                                             victim.stamina -= 1
-                                        print("对方接住了一颗子弹"
+                                        print(Texts.OPPO_CATCHES_BULLET
                                               if victim.controllable
-                                              else "恶魔接住了一颗子弹")
+                                              else Texts.E_CATCHES_BULLET)
                                         continue
                             if isinstance(victim, NormalPlayer) and \
                                victim.bulletproof :
                                 victim.bulletproof[0] -= randint(1, ceil(
                                     (player.attack_boost+1)**0.5
                                 )) if isinstance(player, NormalPlayer) else 1
-                                print("对方的防弹衣承受了这次撞击"
+                                print(Texts.OPPO_BULLETPROOF_DEFENDS
                                       if victim.controllable
-                                      else "恶魔的防弹衣承受了这次撞击")
+                                      else Texts.E_BULLETPROOF_DEFENDS)
                                 if victim.bulletproof[0] <= 0 :
                                     if random() >= \
                                        2 ** (victim.bulletproof[0]-1) :
@@ -1635,12 +1645,12 @@ while 1 :
                                                 if random() < 0.15 :
                                                     victim.breakcare_rounds +=1
                                             victim.breakcare_potential = 0
-                                        print("对方的一件防弹衣爆了"
+                                        print(Texts.OPPO_BULLETPROOF_BREAKS
                                               if victim.controllable
-                                              else "恶魔的一件防弹衣爆了")
+                                              else Texts.E_BULLETPROOF_BREAKS)
                             elif bullets_i[0] :
                                 true_on_e = True
-                                print("运气非常好,是个实弹!")
+                                print(Texts.R_TRUE_ON_E)
                                 for _ in range(
                                     base_attack+player.attack_boost if
                                     isinstance(player, NormalPlayer) else
@@ -1653,19 +1663,20 @@ while 1 :
                                     else :
                                         victim.hp -= 1
                                         gamesave.damage_caused_to_e += 1
-                                print("对方生命值:" if victim.controllable
-                                      else "恶魔生命值:", victim.hp)
+                                print((Texts.OPPO_CUR_HP if victim.controllable
+                                       else Texts.E_CUR_HP).string
+                                      .format(victim.hp))
                                 if isinstance(victim, NormalPlayer) and \
                                    random() >= victim.hurts / 8. :
                                     victim.hurts += 1
                                     assert 0 <= victim.hurts < 9
                             else :
-                                print("很遗憾,是个空弹")
+                                print(Texts.R_FALSE_ON_R)
                         else :
                             if bullets_i[0] :
                                 gamesave.success_selfshoot_trues += 1
                                 true_on_r = True
-                                print("感觉像是去奈何桥走了一遭,竟然是个实弹!")
+                                print(Texts.R_TRUE_ON_R)
                                 for _ in range(
                                     base_attack+player.attack_boost if
                                     isinstance(player, NormalPlayer) else
@@ -1680,14 +1691,14 @@ while 1 :
                                         player.hp -= 1
                                         gamesave.damage_caused_to_r += 1
                                         gamesave.damage_caught += 1
-                                print("你的生命值:", player.hp)
+                                print(Texts.R_CUR_HP.format(player.hp))
                                 if isinstance(player, NormalPlayer) and \
                                    random() >= player.hurts / 8. :
                                     player.hurts += 1
                                     assert 0 <= player.hurts < 9
                             else :
                                 gamesave.success_selfshoot_falses += 1
-                                print("啊哈!,是个空弹!")
+                                print(Texts.R_FALSE_ON_R)
                 if isinstance(player, NormalPlayer) and not true_on_r and \
                    player.stamina < 32 and random() < 1. / (player.hurts+1) :
                     player.stamina += 1
@@ -1705,7 +1716,7 @@ while 1 :
                 if isinstance(player, NormalPlayer) :
                     player.attack_boost = 0
             else :
-                print("请确定输入的数字正确")
+                print(Texts.WRONG_OPER_NUM)
         else :
             player = chosen_game.players[chosen_game.turn_orders[0]]
             victim = chosen_game.players[0+(not chosen_game.turn_orders[0])]
@@ -1733,6 +1744,13 @@ while 1 :
                             player.cursed_shoot_level -= 1
                         else :
                             player.againstshoot_promises += 1
+                elif slot[1] == 2 :
+                    will_use = chosen_game.bullets[0] if nightmare else \
+                               not randint(0, 1)
+                    if isinstance(player, NormalPlayer) and will_use :
+                        player.slots[slotid] = (slot[0], None)
+                        player.attack_boost += 1
+                        print(Texts.E_USES_ID2)
                 elif slot[1] == 3 :
                     will_use = \
                     True if nightmare and chosen_game.bullets[0] and \
@@ -1740,51 +1758,34 @@ while 1 :
                     not randint(0, 1)
                     if will_use :
                         player.slots[slotid] = (slot[0], None)
-                        print("恶魔排出了一颗实弹" \
-                              if chosen_game.bullets.pop(0) \
-                              else "恶魔排出了一颗空弹")
+                        print(Texts.E_USES_ID3[chosen_game.bullets.pop(0)])
                         if not chosen_game.bullets :
                             break
-                elif slot[1] == 2 :
-                    will_use = chosen_game.bullets[0] if nightmare else \
-                               not randint(0, 1)
-                    if isinstance(player, NormalPlayer) and will_use :
-                        player.slots[slotid] = (slot[0], None)
-                        player.attack_boost += 1
-                        print("恶魔使用了小刀,哦吼吼,结果会如何呢?")
                 elif slot[1] == 4 :
                     will_use = nightmare or not randint(0, 1)
                     if will_use :
                         player.slots[slotid] = (slot[0], None)
                         chosen_game.rel_turn_lap -= 1
                         victim.stopped_turns += 1
-                        print("恭喜恶魔,成功把你变成了{0}!".format(cat_girl))
+                        print(Texts.E_USES_ID4.format(cat_girl))
                 elif slot[1] == 5 :
                     will_use = nightmare or not randint(0, 1)
                     if will_use :
                         player.slots[slotid] = (slot[0], None)
-                        if isinstance(player, NormalPlayer) :
-                            if nightmare or player.hp <= 3 + player.hurts / 4.\
-                               or random() < \
-                                  0.5 ** (player.hp-3-player.hurts/4.) :
-                                player.hp += 1
-                                print("恶魔使用了道德的崇高赞许,回复了1点生命")
-                            else :
-                                print("因为恶魔的不诚实,恶魔并未回复生命,"
-                                      "甚至失去了道德的崇高赞许")
-                        else :
-                            if nightmare or player.hp <= 3 or \
-                               random() < 0.5 ** (player.hp-3) :
-                                player.hp += 1
-                                print("恶魔使用了道德的崇高赞许,回复了1点生命")
-                            else :
-                                print("因为恶魔的不诚实,恶魔并未回复生命,"
-                                      "甚至失去了道德的崇高赞许")
+                        heal_succeeded: bool = nightmare or (
+                            player.hp <= 3 + player.hurts / 4. or
+                            random() < 0.5 ** (player.hp-3-player.hurts/4.)
+                            if isinstance(player, NormalPlayer) else
+                            player.hp <= 3 or random() < 0.5 ** (player.hp-3)
+                        )
+                        if heal_succeeded :
+                            player.hp += 1
+                        print(Texts.E_USES_ID5[heal_succeeded])
                 elif slot[1] == 6 :
                     will_use = nightmare or not randint(0, 1)
                     if will_use :
                         player.slots[slotid] = (slot[0], None)
-                        print("恶魔查看了枪里的子弹并笑了一下")
+                        print(Texts.E_USES_ID6)
                 elif slot[1] == 7 :
                     will_use = not randint(0, 3)
                     if will_use :
@@ -1844,7 +1845,7 @@ while 1 :
                     will_use = nightmare or not randint(0, 1)
                     if will_use :
                         player.slots[slotid] = (slot[0], None)
-                        print("恶魔穿上了一件防弹衣")
+                        print(Texts.E_USES_ID9)
                         player.bulletproof.insert(0, 3)
                 elif slot[1] == 11 :
                     will_use = nightmare or not randint(0, 5)
@@ -1853,13 +1854,13 @@ while 1 :
                         dice_sum: int = \
                         randint(1, 6) + randint(1, 6) + randint(1, 6)
                         if debug :
-                            print("恶魔摇出了", dice_sum, "点")
+                            print(Texts.E_USES_ID11.format(dice_sum))
                         if dice_sum == 3 :
                             if isinstance(player, NormalPlayer) :
                                 player.breakcare_rounds += 2
                         elif dice_sum == 4 :
                             player.hp -= 2
-                            print("恶魔失去了2点生命")
+                            print(Texts.E_LOST_2_HP)
                             if player.hp <= 0 :
                                 break
                         elif dice_sum == 5 :
@@ -1869,12 +1870,12 @@ while 1 :
                                 not randint(0, 1)
                         elif dice_sum == 6 :
                             player.hp -= 1
-                            print("恶魔失去了1点生命")
+                            print(Texts.E_LOST_1_HP)
                             if player.hp <= 0 :
                                 break
                         elif dice_sum == 7 :
                             vanishable_indices: List[int] = []
-                            for slotid,slot in enumerate(player.slots) :
+                            for slotid, slot in enumerate(player.slots) :
                                 if slot[1] is not None :
                                     if player.tools_sending_limit_in_game[
                                         slot[1]
@@ -1892,7 +1893,7 @@ while 1 :
                                 player.stamina += 1
                         elif dice_sum == 10 :
                             player.hp += 1
-                            print("恶魔获得了1点生命")
+                            print(Texts.E_GOT_1_HP)
                         elif dice_sum == 11 :
                             if isinstance(player, NormalPlayer) and \
                                player.stamina < 32 :
@@ -1903,10 +1904,10 @@ while 1 :
                             if isinstance(player, NormalPlayer) :
                                 player.attack_boost += 2
                                 if randint(0, 1) :
-                                    print("恶魔的攻击力提高了2点")
+                                    print(Texts.E_ATTACK_BOOSTED_2)
                         elif dice_sum == 13 :
                             victim.hp -= 1
-                            print("你失去了1点生命")
+                            print(Texts.R_LOST_1_HP)
                             if victim.hp <= 0 :
                                 break
                         elif dice_sum == 14 :
@@ -1915,13 +1916,13 @@ while 1 :
                             victim.stopped_turns += k
                         elif dice_sum == 15 :
                             victim.hp -= 2
-                            print("你失去了2点生命")
+                            print(Texts.R_LOST_2_HP)
                             if victim.hp <= 0 :
                                 break
                         elif dice_sum == 18 :
                             victim.hp //= 8
-                            print("你受到暴击!!!")
-                            print("你的生命值:", victim.hp)
+                            print(Texts.R_CRIT)
+                            print(Texts.R_CUR_HP.format(victim.hp))
                 elif slot[1] == 12 :
                     will_use = not randint(0, 1)
                     if will_use :
@@ -1943,7 +1944,7 @@ while 1 :
                     if will_use :
                         player.slots[slotid] = (slot[0], None)
                         if randint(0, 1) :
-                            print("恶魔变成了你的样子")
+                            print(Texts.E_TURNED_INTO_R)
                             player.hp = victim.hp
                             player.slots.clear()
                             player.slots.extend(victim.slots)
@@ -1975,7 +1976,7 @@ while 1 :
                                 victim.begin_band_level
                                 player.mid_band_level = victim.mid_band_level
                         else :
-                            print("你变成了恶魔的样子")
+                            print(Texts.R_TURNED_INTO_E)
                             victim.hp = player.hp
                             victim.slots.clear()
                             victim.slots.extend(player.slots)
@@ -2022,13 +2023,13 @@ while 1 :
                             if random() < fill_probability :
                                 chosen_game.bullets[bullet_index] = True
                         if chosen_game.bullets != original_bullets :
-                            print("弹夹有变动")
+                            print(Texts.CLIP_CHANGED)
                 elif slot[1] == 16 :
                     will_use = not randint(0, 3)
                     if will_use :
                         player.slots[slotid] = (slot[0], None)
                         shuffle(chosen_game.bullets)
-                        print("恶魔重整了一下弹药")
+                        print(Texts.E_USES_ID16)
                 elif slot[1] == 17 :
                     if isinstance(player, NormalPlayer) :
                         will_use = all(chosen_game.bullets[
@@ -2069,7 +2070,7 @@ while 1 :
                                 0, len(chosen_game.bullets)-1
                             )) else 23
                         )
-                        print("恶魔取出了一颗子弹")
+                        print(Texts.E_USES_ID22)
                 elif slot[1] == 23 :
                     will_use = not randint(0, 2)
                     if will_use :
@@ -2077,7 +2078,7 @@ while 1 :
                         chosen_game.bullets.insert(randint(0, len(
                             chosen_game.bullets
                         )), False)
-                        print("恶魔放入了一颗空弹")
+                        print(Texts.E_USES_ID23)
                 elif slot[1] == 24 :
                     will_use = not randint(0, 2)
                     if will_use :
@@ -2085,7 +2086,7 @@ while 1 :
                         chosen_game.bullets.insert(randint(0, len(
                             chosen_game.bullets
                         )), True)
-                        print("恶魔放入了一颗实弹")
+                        print(Texts.E_USES_ID24)
                 elif slot[1] == 25 :
                     will_use = not randint(0, 2)
                     if will_use :
@@ -2097,7 +2098,7 @@ while 1 :
                         if bullet_i_to_ins < len(chosen_game.bullets) - 1 :
                             chosen_game.bullets[bullet_i_to_ins+1] = \
                             not randint(0, 1)
-                        print("恶魔放入了一颗神秘子弹")
+                        print(Texts.E_USES_ID25)
                 elif slot[1] == 26 :
                     if isinstance(player, NormalPlayer) :
                         will_use = player.hurts > player.begin_band_level + \
@@ -2106,26 +2107,26 @@ while 1 :
                         if will_use :
                             player.slots[slotid] = (slot[0], None)
                             player.begin_band_level += 1
-                            print("恶魔使用了绷带")
+                            print(Texts.E_USES_ID26)
                 elif slot[1] == 27 :
                     will_use = not randint(0, 4)
                     if will_use :
                         player.slots[slotid] = (slot[0], None)
                         if player.hp < 2 :
                             player.hp += 5
-                            print("恶魔使用了医疗包,回复了5点生命")
+                            print(Texts.E_USES_ID27_5)
                         elif player.hp < 5 :
                             player.hp += 4
-                            print("恶魔使用了医疗包,回复了4点生命")
+                            print(Texts.E_USES_ID27_4)
                         elif player.hp < 9 :
                             player.hp += 3
-                            print("恶魔使用了医疗包,回复了3点生命")
+                            print(Texts.E_USES_ID27_3)
                         elif player.hp < 14 :
                             player.hp += 2
-                            print("恶魔使用了医疗包,回复了2点生命")
+                            print(Texts.E_USES_ID27_2)
                         else :
                             player.hp += 1
-                            print("恶魔使用了医疗包,回复了1点生命")
+                            print(Texts.E_USES_ID27_1)
                         if isinstance(player, NormalPlayer) :
                             if player.hurts < 1 :
                                 player.hp += 2
@@ -2138,9 +2139,7 @@ while 1 :
                     if will_use :
                         player.slots[slotid] = (slot[0], None)
                         while chosen_game.bullets :
-                            print("恶魔排出了一颗实弹" \
-                                  if chosen_game.bullets.pop(0) \
-                                  else "恶魔排出了一颗空弹")
+                            print(Texts.E_USES_ID3[chosen_game.bullets.pop(0)])
                 elif slot[1] == 29 :
                     will_use = not randint(0, 7)
                     if will_use :
@@ -2152,15 +2151,15 @@ while 1 :
                         player.slots[slotid] = (slot[0], None)
                         chosen_game.rel_turn_lap -= len(chosen_game.bullets)
                         victim.stopped_turns += len(chosen_game.bullets)
-                        print("恭喜恶魔,成功把你变成了{0}!".format(cat_girl))
+                        print(Texts.E_USES_ID4.format(cat_girl))
                 elif slot[1] == 32 :
                     will_use = not randint(0, 9)
                     if will_use :
                         evil_hp: int = randint(1, player.hp)
-                        print("恶魔以", evil_hp, "生命值向你发起了擂台战")
+                        print(Texts.E_INITS_STAGE.format(evil_hp))
                         if victim.controllable :
                             if victim.hp == 1 :
-                                print("你以仅有的 1 生命值应战")
+                                print(Texts.R_RECEIVES_STAGE_1)
                                 victim.hp -= 1
                                 player.hp -= evil_hp
                                 parent_game.subgame = StageGame(
@@ -2177,8 +2176,8 @@ while 1 :
                                 while True :
                                     try :
                                         your_hp: int = int(input(
-                                            "请输入你要作为赌注的生命值"
-                                            "(1~{0}):".format(victim.hp)
+                                            Texts.R_RECEIVES_STAGE
+                                            .format(victim.hp)
                                         ))
                                         if 0 < your_hp <= victim.hp :
                                             victim.hp -= your_hp
@@ -2199,7 +2198,10 @@ while 1 :
                                         pass
                         else :
                             your_hp = randint(1, victim.hp)
-                            print("你以", your_hp, "生命值应战")
+                            print(I18nText(
+                                "你以 {0} 生命值应战",
+                                en_en="You accepted with {0} HP"
+                            ).format(your_hp))
                             victim.hp -= your_hp
                             player.hp -= evil_hp
                             parent_game.subgame = StageGame(
@@ -2221,7 +2223,7 @@ while 1 :
                         chosen_game.explosion_exponent = int(
                             Fraction(2, 3)*chosen_game.explosion_exponent
                         )
-                        print("恶魔维修了一下枪筒")
+                        print(Texts.E_USES_ID33)
                 elif slot[1] == 34 :
                     will_use = (not (all(chosen_game.bullets[
                         :chosen_game.bullets.count(True)
@@ -2244,7 +2246,7 @@ while 1 :
                                     i.remove(False)
                                 for _ in range(false_count) :
                                     i.append(False)
-                        print("弹夹进行了空实分离")
+                        print(Texts.E_USES_ID34)
                 elif slot[1] == 35 :
                     will_use = \
                     any(chosen_game.extra_bullets) and not randint(0, 4)
@@ -2254,7 +2256,7 @@ while 1 :
                             if i :
                                 chosen_game.bullets.extend(i)
                                 i.clear()
-                        print("恶魔合并了一下弹夹")
+                        print(Texts.E_USES_ID35)
             if not chosen_game.bullets :
                 break
             round_turn_count += 1
@@ -2283,11 +2285,11 @@ while 1 :
                     player.selfshoot_promises -= 1
                 else :
                     shoot_result = chosen_game.shoot(True, False)
-                print("恶魔将枪口对准了自己")
+                print(Texts.E_TO_E)
                 for bullets_i in shoot_result :
                     if bullets_i is not None :
                         if bullets_i[1] :
-                            print("啊哦,子弹居然炸膛了!")
+                            print(Texts.E_EXPLODES)
                             if isinstance(victim, NormalPlayer) and \
                                victim.bullet_catcher_level :
                                 if bullets_i[0] :
@@ -2301,7 +2303,7 @@ while 1 :
                                         chosen_game.bullets.append(True)
                                         if victim.stamina > 0 :
                                             victim.stamina -= 1
-                                        print("你接住了一颗子弹")
+                                        print(Texts.R_CATCHES_BULLET)
                                         continue
                                 else :
                                     if random() < 0.8 / (
@@ -2313,14 +2315,14 @@ while 1 :
                                         chosen_game.bullets.append(False)
                                         if victim.stamina > 0 :
                                             victim.stamina -= 1
-                                        print("你接住了一颗子弹")
+                                        print(Texts.R_CATCHES_BULLET)
                                         continue
                             if isinstance(victim, NormalPlayer) and \
                                victim.bulletproof :
                                 victim.bulletproof[0] -= \
                                 randint(1, ceil((player.attack_boost+1)**0.5))\
                                 if isinstance(player, NormalPlayer) else 1
-                                print("你的防弹衣承受了这次撞击")
+                                print(Texts.R_BULLETPROOF_DEFENDS)
                                 if victim.bulletproof[0] <= 0 :
                                     if random() >= \
                                        2 ** (victim.bulletproof[0]-1) :
@@ -2332,10 +2334,10 @@ while 1 :
                                                 if random() < 0.15 :
                                                     victim.breakcare_rounds +=1
                                             victim.breakcare_potential = 0
-                                        print("你的一件防弹衣爆了")
+                                        print(Texts.R_BULLETPROOF_BREAKS)
                             elif bullets_i[0] :
                                 true_on_r = True
-                                print("运气非常差,是个实弹!")
+                                print(Texts.E_TRUE_ON_R)
                                 for _ in range(
                                     base_attack+player.attack_boost if
                                     isinstance(player, NormalPlayer) else
@@ -2348,17 +2350,17 @@ while 1 :
                                     else :
                                         victim.hp -= 1
                                         gamesave.damage_caught += 1
-                                print("你的生命值:", victim.hp)
+                                print(Texts.R_CUR_HP.format(victim.hp))
                                 if isinstance(victim, NormalPlayer) and \
                                    random() >= victim.hurts / 8. :
                                     victim.hurts += 1
                                     assert 0 <= victim.hurts < 9
                             else :
-                                print("很幸运,是个空弹")
+                                print(Texts.E_FALSE_ON_R)
                         else :
                             if bullets_i[0] :
                                 true_on_e = True
-                                print("“砰!”一声枪响,它自杀了,你心里暗喜")
+                                print(Texts.E_TRUE_ON_E)
                                 for _ in range(
                                     base_attack+player.attack_boost if
                                     isinstance(player, NormalPlayer) else
@@ -2367,13 +2369,13 @@ while 1 :
                                     player.hp -= \
                                     2 if isinstance(player, NormalPlayer) and \
                                          random() < player.hurts / 8. else 1
-                                print("恶魔生命值:", player.hp)
+                                print(Texts.E_CUR_HP.format(player.hp))
                                 if isinstance(player, NormalPlayer) and \
                                    random() >= player.hurts / 8. :
                                     player.hurts += 1
                                     assert 0 <= player.hurts < 9
                             else :
-                                print("“啊哈!,是个空弹!”恶魔嘲讽道")
+                                print(Texts.E_FALSE_ON_E)
             else :
                 shoot_combo_addition = 0
                 if isinstance(player, NormalPlayer) :
@@ -2424,7 +2426,7 @@ while 1 :
                 else :
                     shoots_result = chosen_game.shoots(False, False)
                 base_shoot = True
-                print("恶魔朝你开了一枪")
+                print(Texts.E_TO_R)
                 for shoot_result in shoots_result :
                     if shoot_result[0] is not None :
                         if base_shoot :
@@ -2436,10 +2438,10 @@ while 1 :
                     for bullets_i in shoot_result :
                         if bullets_i is not None :
                             if bullets_i[1] :
-                                print("啊哦,子弹居然炸膛了!")
+                                print(Texts.E_EXPLODES)
                                 if bullets_i[0] :
                                     true_on_e = True
-                                    print("“砰!”一声枪响,它自杀了,你心里暗喜")
+                                    print(Texts.E_TRUE_ON_E)
                                     for _ in range(
                                         base_attack+player.attack_boost if
                                         isinstance(player, NormalPlayer) else
@@ -2449,13 +2451,13 @@ while 1 :
                                         2 if isinstance(player, NormalPlayer) \
                                              and random() < player.hurts / 8. \
                                         else 1
-                                    print("恶魔生命值:", player.hp)
+                                    print(Texts.E_CUR_HP.format(player.hp))
                                     if isinstance(player, NormalPlayer) and \
                                        random() >= player.hurts / 8. :
                                         player.hurts += 1
                                         assert 0 <= player.hurts < 9
                                 else :
-                                    print("“啊哈!,是个空弹!”恶魔嘲讽道")
+                                    print(Texts.E_FALSE_ON_E)
                             else :
                                 if isinstance(victim, NormalPlayer) and \
                                    victim.bullet_catcher_level :
@@ -2470,7 +2472,7 @@ while 1 :
                                             chosen_game.bullets.append(True)
                                             if victim.stamina > 0 :
                                                 victim.stamina -= 1
-                                            print("你接住了一颗子弹")
+                                            print(Texts.R_CATCHES_BULLET)
                                             continue
                                     else :
                                         if random() < 0.8 / (
@@ -2483,29 +2485,31 @@ while 1 :
                                             chosen_game.bullets.append(False)
                                             if victim.stamina > 0 :
                                                 victim.stamina -= 1
-                                            print("你接住了一颗子弹")
+                                            print(Texts.R_CATCHES_BULLET)
                                             continue
                                 if isinstance(victim, NormalPlayer) and \
                                    victim.bulletproof :
                                     victim.bulletproof[0] -= randint(1, ceil(
                                         (player.attack_boost+1)**0.5
                                     ))if isinstance(player, NormalPlayer)else 1
-                                    print("你的防弹衣承受了这次撞击")
+                                    print(Texts.R_BULLETPROOF_DEFENDS)
                                     if victim.bulletproof[0] <= 0 :
                                         if random() >= \
                                            2 ** (victim.bulletproof[0]-1) :
                                             del victim.bulletproof[0]
                                             victim.breakcare_potential += 1
                                             if not victim.bulletproof :
-                                                for _ in \
-                                                range(victim.breakcare_potential) :
+                                                for _ in range(
+                                                    victim.breakcare_potential
+                                                ) :
                                                     if random() < 0.15 :
-                                                        victim.breakcare_rounds += 1
+                                                        victim\
+                                                        .breakcare_rounds += 1
                                                 victim.breakcare_potential = 0
-                                            print("你的一件防弹衣爆了")
+                                            print(Texts.R_BULLETPROOF_BREAKS)
                                 elif bullets_i[0] :
                                     true_on_r = True
-                                    print("运气非常差,是个实弹!")
+                                    print(Texts.E_TRUE_ON_R)
                                     for _ in range(
                                         base_attack+player.attack_boost if
                                         isinstance(player, NormalPlayer) else
@@ -2518,13 +2522,13 @@ while 1 :
                                         else :
                                             victim.hp -= 1
                                             gamesave.damage_caught += 1
-                                    print("你的生命值:", victim.hp)
+                                    print(Texts.R_CUR_HP.format(victim.hp))
                                     if isinstance(victim, NormalPlayer) and \
                                        random() >= victim.hurts / 8. :
                                         victim.hurts += 1
                                         assert 0 <= victim.hurts < 9
                                 else :
-                                    print("很幸运,是个空弹")
+                                    print(Texts.E_FALSE_ON_R)
             if isinstance(victim, NormalPlayer) and not true_on_r and \
                victim.stamina < 32 and random() < 1. / (victim.hurts+1) :
                 victim.stamina += 1
@@ -2546,107 +2550,103 @@ while 1 :
             gamesave.add_exp()
 
 if chosen_game.players[1].controllable :
-    if chosen_game.players[0].alive :
-        print("恭喜玩家 0 ,成功把玩家 1 变成了{0}!".format(cat_girl))
-    elif chosen_game.players[1].alive :
-        print("恭喜玩家 1 ,成功把玩家 0 变成了{0}!".format(cat_girl))
-    else :
-        print("你们最后同归于尽了")
+    print(Texts.PLAYER_0_WON.format(cat_girl) if chosen_game.players[0].alive
+          else (Texts.PLAYER_1_WON.format(cat_girl) if
+                chosen_game.players[1].alive else Texts.END_0_0))
 elif chosen_game.players[0].alive :
     if chosen_game.e_hp >= 0 :
-        print("恭喜你,成功把恶魔变成了{0}!".format(cat_girl))
+        print(Texts.R_WON.format(cat_girl))
     elif chosen_game.e_hp == -1 :
-        print("恭喜你,成功把恶魔打得体无完肤!")
+        print(Texts.R_WON_1)
     elif chosen_game.e_hp == -2 :
-        print("恭喜你,成功把恶魔化作一团灰烬!")
+        print(Texts.R_WON_2)
     else :
-        print("恭喜你,成功让恶魔原地消失!")
+        print(Texts.R_WON_3)
 elif chosen_game.r_hp >= 0 :
     if chosen_game.players[1].alive :
-        print("唉....你被恶魔变成了{0}".format(cat_girl))
+        print(Texts.E_WON.format(cat_girl))
     elif chosen_game.e_hp >= 0 :
-        print("你们最后同归于尽了")
+        print(Texts.END_0_0)
         gamesave.add_exp(25)
         gamesave.add_coins()
     elif chosen_game.e_hp == -1 :
-        print("你让恶魔面目全非,但你也付出了生命的代价")
+        print(Texts.END_0_1)
         gamesave.add_exp(80)
         gamesave.add_coins(3)
     elif chosen_game.e_hp == -2 :
-        print("恶魔为你化作灰烬,而你成为了{0}".format(cat_girl))
+        print(Texts.END_0_2.format(cat_girl))
         gamesave.add_exp(400)
         gamesave.add_coins(10)
     else :
-        print("你作为{0}看着恶魔消失于世上".format(cat_girl))
+        print(Texts.END_0_3.format(cat_girl))
         gamesave.add_exp(1500)
         gamesave.add_coins(32)
 elif chosen_game.r_hp == -1 :
     if chosen_game.players[1].alive :
-        print("唉....你被恶魔打得体无完肤")
+        print(Texts.E_WON_1)
     elif chosen_game.e_hp >= 0 :
-        print("恶魔让你面目全非,但他也付出了生命的代价")
+        print(Texts.END_1_0)
         gamesave.add_exp(80)
         gamesave.add_coins(3)
     elif chosen_game.e_hp == -1 :
-        print("二人幸终……")
+        print(Texts.END_1_1)
         gamesave.add_exp(400)
         gamesave.add_coins(10)
     elif chosen_game.e_hp == -2 :
-        print("恶魔为你化作灰烬,而你也面目狼狈……")
+        print(Texts.END_1_2)
         gamesave.add_exp(1500)
         gamesave.add_coins(32)
     else :
-        print("你用残缺的身躯彻底送走了恶魔")
+        print(Texts.END_1_3)
         gamesave.add_exp(4800)
         gamesave.add_coins(100)
 elif chosen_game.r_hp == -2 :
     if chosen_game.players[1].alive :
-        print("唉....你被恶魔化作一团灰烬")
+        print(Texts.E_WON_2)
     elif chosen_game.e_hp >= 0 :
-        print("你为恶魔化作灰烬,而它成为了{0}".format(cat_girl))
+        print(Texts.END_2_0.format(cat_girl))
         gamesave.add_exp(400)
         gamesave.add_coins(10)
     elif chosen_game.e_hp == -1 :
-        print("你为恶魔化作灰烬,而它也面目狼狈……")
+        print(Texts.END_2_1)
         gamesave.add_exp(1500)
         gamesave.add_coins(32)
     elif chosen_game.e_hp == -2 :
-        print("你们化作了两团灰烬")
+        print(Texts.END_2_2)
         gamesave.add_exp(4800)
         gamesave.add_coins(100)
     else:
-        print("")
+        print(Texts.END_2_3)
         gamesave.add_exp(16000)
         gamesave.add_coins(320)
 else :
     if chosen_game.players[1].alive :
-        print("唉....恶魔让你人间蒸发了")
+        print(Texts.E_WON_3)
     elif chosen_game.e_hp >= 0 :
-        print("恶魔作为{0}看着你消失于世上".format(cat_girl))
+        print(Texts.END_3_0.format(cat_girl))
         gamesave.add_exp(1500)
         gamesave.add_coins(32)
     elif chosen_game.e_hp == -1 :
-        print()
+        print(Texts.END_3_1)
         gamesave.add_exp(4800)
         gamesave.add_coins(100)
     elif chosen_game.e_hp == -2 :
-        print()
+        print(Texts.END_3_2)
         gamesave.add_exp(16000)
         gamesave.add_coins(320)
     else :
-        print("你们俩仿佛从来没存在过一般")
+        print(Texts.END_3_3)
         gamesave.add_exp(54000)
         gamesave.add_coins(1000)
 
 gamesave.play_periods += 1
 gamesave.game_runs += 1
 print("================================")
-print("本次游戏持续了", total_turn_count, "轮,")
-print(total_round_count, "回合,")
-print(total_period_count, "周目")
+print(Texts.GAME_COUNT_INFO
+      .format(total_turn_count, total_round_count, total_period_count))
 
 try :
-    with open("emlpd.dat", "wb") as gamesave_file :
+    with open(gamesave_filename, "wb") as gamesave_file :
         gamesave_file.write(gamesave.serialize())
 except OSError as err :
-    print("存档时遇到问题!", err)
+    print(Texts.PROBLEM_SAVING, err)

@@ -14,6 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .gameapi import Game, GameSave
+from .gameapi import I18nText, Game, GameSave
 
-__all__ = ["Game", "GameSave"]
+__all__ = ["I18nText", "Game", "GameSave"]
